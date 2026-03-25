@@ -1,0 +1,1457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TicketSnap">
+<meta name="theme-color" content="#000000">
+<title>TicketSnap</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  :root{
+    --bg:#000;--card:#1c1c1e;--card2:#2c2c2e;--border:rgba(255,255,255,0.08);
+    --text:#fff;--text2:rgba(255,255,255,0.55);--text3:rgba(255,255,255,0.3);
+    --blue:#0a84ff;--green:#30d158;--red:#ff453a;--orange:#ff9f0a;--purple:#bf5af2;
+    --teal:#64d2ff;--radius:14px;--safe-bottom:env(safe-area-inset-bottom,0px)
+  }
+  body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;min-height:100dvh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+
+  /* ── Nav Bar ── */
+  .navbar{position:sticky;top:0;z-index:100;padding:env(safe-area-inset-top,0) 0 0;background:rgba(0,0,0,0.72);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:0.5px solid rgba(255,255,255,0.12)}
+  .navbar-inner{display:flex;align-items:center;justify-content:space-between;padding:11px 16px}
+  .nav-title{font-size:17px;font-weight:700;letter-spacing:-0.02em}
+  .nav-title span{color:var(--blue)}
+  .nav-pill{font-size:12px;font-weight:600;background:rgba(255,255,255,0.08);padding:5px 12px;border-radius:20px;color:var(--text2)}
+  .nav-pill b{color:var(--text)}
+
+  /* ── Screens ── */
+  .screen{display:none;padding:8px 16px calc(88px + var(--safe-bottom))}
+  .screen.active{display:block}
+
+  /* ── Section headers ── */
+  .section-label{font-size:13px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.02em;padding:20px 0 8px}
+
+  /* ── iOS Cards ── */
+  .ios-card{background:var(--card);border-radius:var(--radius);overflow:hidden;margin-bottom:12px}
+  .ios-card-pad{padding:16px}
+  .ios-row{display:flex;align-items:center;padding:12px 16px;min-height:44px}
+  .ios-row+.ios-row{border-top:0.5px solid var(--border)}
+  .ios-row-left{flex:1;min-width:0}
+  .ios-row-right{color:var(--text2);font-size:15px;margin-left:12px;flex-shrink:0}
+  .ios-row .row-title{font-size:15px;font-weight:400}
+  .ios-row .row-sub{font-size:13px;color:var(--text2);margin-top:1px}
+
+  /* ── Upload Zone (only shows preview when file selected) ── */
+  .upload-zone{display:none}
+  .upload-zone.has-file{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;width:100%;aspect-ratio:4/3;border-radius:var(--radius);background:var(--card);position:relative;overflow:hidden;padding:16px;margin-bottom:12px}
+  .upload-zone.has-file img{width:100%;height:100%;object-fit:contain}
+  .upload-zone input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer;font-size:0}
+
+  /* ── Scan Prompt ── */
+  .scan-prompt{text-align:center;padding:32px 16px 8px;color:var(--text2);font-size:14px;font-weight:500}
+
+  /* ── Capture Buttons ── */
+  .capture-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px}
+  .cap-btn{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px;background:var(--card);border-radius:var(--radius);border:none;cursor:pointer;font-family:inherit;color:var(--text);transition:transform 0.1s}
+  .cap-btn:active{transform:scale(0.96)}
+  .cap-icon{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px}
+  .cap-icon.gallery{background:rgba(191,90,242,0.15);color:var(--purple)}
+  .cap-icon.camera{background:rgba(10,132,255,0.15);color:var(--blue)}
+  .cap-icon.pdf{background:rgba(255,159,10,0.15);color:var(--orange)}
+  .cap-label{font-size:12px;font-weight:500;color:var(--text2)}
+
+  /* ── Cancel / Clear buttons ── */
+  .cancel-btn{width:52px;border:none;border-radius:var(--radius);background:rgba(255,69,58,0.12);color:var(--red);font-size:20px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.12s;flex-shrink:0}
+  .cancel-btn:active{background:rgba(255,69,58,0.25);transform:scale(0.96)}
+  .cancel-scan-btn{margin-top:20px;padding:12px 32px;border:1px solid var(--border);border-radius:var(--radius);background:none;color:var(--red);font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.12s}
+  .cancel-scan-btn:active{background:rgba(255,69,58,0.08)}
+
+  /* ── File pills ── */
+  .file-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .file-pill{display:flex;align-items:center;gap:6px;background:var(--card2);border-radius:20px;padding:6px 12px;font-size:13px;font-weight:500}
+  .file-pill .pill-remove{width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text2);cursor:pointer;border:none;font-family:inherit;line-height:1}
+  .file-pill .pill-remove:active{background:rgba(255,69,58,0.2);color:var(--red)}
+
+  /* ── Add more pages ── */
+  .add-page-btn{display:none;width:100%;padding:12px;margin-top:8px;margin-bottom:12px;background:none;border:1px dashed rgba(255,255,255,0.15);border-radius:var(--radius);color:var(--blue);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.15s}
+  .add-page-btn:active{background:rgba(10,132,255,0.06)}
+  .add-page-btn.show{display:block}
+
+  /* ── Scan Button ── */
+  .scan-btn{width:100%;padding:16px;margin-top:16px;border:none;border-radius:var(--radius);font-size:17px;font-weight:700;font-family:inherit;cursor:pointer;transition:all 0.15s;letter-spacing:-0.01em}
+  .scan-btn.ready{background:var(--blue);color:#fff}
+  .scan-btn.ready:active{background:#0070e0;transform:scale(0.98)}
+  .scan-btn.disabled{background:var(--card);color:var(--text3);cursor:default}
+
+  /* ── Processing ── */
+  .processing{display:none;text-align:center;padding:48px 24px}
+  .processing.show{display:block}
+  .proc-ring{width:52px;height:52px;border:3px solid rgba(255,255,255,0.08);border-top-color:var(--blue);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 24px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .proc-steps{display:flex;flex-direction:column;gap:6px}
+  .proc-step{font-size:15px;color:var(--text3);font-weight:500;transition:color 0.3s}
+  .proc-step.active{color:var(--blue)}
+  .proc-step.done{color:var(--green)}
+
+  /* ─── RESULTS ─── */
+  /* Hero card */
+  .result-hero{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);border-radius:20px;padding:24px 20px;margin-bottom:16px;position:relative;overflow:hidden}
+  .result-hero::after{content:'';position:absolute;top:-40%;right:-20%;width:200px;height:200px;background:radial-gradient(circle,rgba(10,132,255,0.15) 0%,transparent 70%);pointer-events:none}
+  .hero-vendor{font-size:22px;font-weight:800;letter-spacing:-0.02em;margin-bottom:4px}
+  .hero-meta{font-size:13px;color:var(--text2)}
+  .hero-total{font-size:42px;font-weight:800;letter-spacing:-0.03em;margin-top:16px;background:linear-gradient(135deg,#fff 0%,rgba(255,255,255,0.7) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+  /* Stat row */
+  .stat-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+  .stat-card{background:var(--card);border-radius:var(--radius);padding:14px 12px;text-align:center}
+  .stat-value{font-size:18px;font-weight:700}
+  .stat-label{font-size:11px;color:var(--text2);margin-top:2px;text-transform:uppercase;letter-spacing:0.03em}
+
+  /* Math banner */
+  .math-banner{display:flex;align-items:center;gap:8px;padding:12px 16px;border-radius:var(--radius);font-size:14px;font-weight:600;margin-bottom:12px}
+  .math-ok{background:rgba(48,209,88,0.1);color:var(--green)}
+  .math-warn{background:rgba(255,69,58,0.1);color:var(--red)}
+
+  /* Items card */
+  .items-header{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;font-size:13px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.03em}
+  .items-count{background:rgba(10,132,255,0.15);color:var(--blue);padding:2px 8px;border-radius:10px;font-size:12px;font-weight:700}
+  .item-row{display:flex;align-items:center;padding:11px 16px;gap:10px}
+  .item-row+.item-row{border-top:0.5px solid var(--border)}
+  .item-check-badge{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+  .badge-ok{background:rgba(48,209,88,0.12);color:var(--green)}
+  .badge-warn{background:rgba(255,69,58,0.12);color:var(--red)}
+  .item-info{flex:1;min-width:0}
+  .item-name{font-size:15px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .item-pack{font-size:12px;color:var(--text2);margin-top:1px}
+  .item-nums{text-align:right;flex-shrink:0}
+  .item-total{font-size:15px;font-weight:700}
+  .item-detail{font-size:12px;color:var(--text2)}
+  .item-row.editable{cursor:pointer}
+  .item-row.editable:active{background:rgba(255,255,255,0.03)}
+  .item-edit-row{padding:12px 16px;background:rgba(10,132,255,0.04);border-bottom:0.5px solid var(--border)}
+  .edit-fields{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+  .edit-field{display:flex;flex-direction:column;gap:3px}
+  .edit-field label{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.03em}
+  .edit-field input{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-size:15px;font-weight:600;font-family:inherit;width:100%;-webkit-appearance:none}
+  .edit-field input:focus{outline:none;border-color:var(--blue)}
+  .edit-actions{display:flex;gap:8px;margin-top:8px}
+  .edit-save{flex:1;padding:10px;border:none;border-radius:8px;background:var(--blue);color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+  .edit-cancel{padding:10px 16px;border:1px solid var(--border);border-radius:8px;background:none;color:var(--text2);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+  .edit-delete{padding:10px 16px;border:1px solid rgba(255,69,58,0.3);border-radius:8px;background:rgba(255,69,58,0.08);color:var(--red);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+  .edit-delete:active{background:rgba(255,69,58,0.2)}
+  .edited-badge{font-size:9px;background:rgba(10,132,255,0.15);color:var(--blue);padding:1px 5px;border-radius:4px;margin-left:4px;font-weight:600}
+
+  /* Totals */
+  .totals-section{padding:14px 16px;background:rgba(255,255,255,0.03)}
+  .total-line{display:flex;justify-content:space-between;padding:3px 0;font-size:15px;color:var(--text2)}
+  .total-line.grand{font-size:18px;font-weight:700;color:var(--text);padding-top:10px;margin-top:8px;border-top:0.5px solid var(--border)}
+
+  /* Export buttons */
+  .export-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}
+  .exp-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:14px;border-radius:var(--radius);font-size:15px;font-weight:600;cursor:pointer;border:none;font-family:inherit;transition:all 0.12s}
+  .exp-btn:active{transform:scale(0.97)}
+  .exp-btn.notion{background:rgba(10,132,255,0.12);color:var(--blue);grid-column:1/-1}
+  .exp-btn.csv{background:var(--card);color:var(--text)}
+  .exp-btn.json{background:var(--card);color:var(--text)}
+  .scan-again-btn{display:block;width:100%;padding:14px;margin-top:10px;background:none;border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.12s}
+  .scan-again-btn:active{background:var(--card)}
+
+  /* ─── HISTORY ─── */
+  .hist-card{display:flex;align-items:center;padding:14px 16px;gap:12px}
+  .hist-card+.hist-card{border-top:0.5px solid var(--border)}
+  .hist-icon{width:40px;height:40px;border-radius:12px;background:rgba(10,132,255,0.1);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+  .hist-info{flex:1;min-width:0}
+  .hist-vendor{font-size:15px;font-weight:600}
+  .hist-date{font-size:13px;color:var(--text2)}
+  .hist-amount{font-size:17px;font-weight:700;text-align:right}
+  .hist-items{font-size:12px;color:var(--text2);text-align:right}
+  .empty-state{text-align:center;padding:60px 24px;color:var(--text2)}
+  .empty-icon{font-size:48px;margin-bottom:12px}
+  .empty-title{font-size:17px;font-weight:600;color:var(--text);margin-bottom:4px}
+  .empty-sub{font-size:14px}
+
+  /* ─── SETTINGS ─── */
+  .settings-row{display:flex;align-items:center;padding:12px 16px;min-height:44px}
+  .settings-row+.settings-row{border-top:0.5px solid var(--border)}
+  .settings-icon{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px;margin-right:12px;flex-shrink:0}
+  .settings-label{flex:1;font-size:15px}
+  .settings-value{font-size:15px;color:var(--text2)}
+  .settings-badge{padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600}
+  .badge-connected{background:rgba(48,209,88,0.12);color:var(--green)}
+  .badge-disconnected{background:rgba(255,255,255,0.06);color:var(--text2)}
+  .settings-chevron{color:var(--text3);margin-left:6px;font-size:14px}
+
+  /* Notion Setup Panel */
+  .notion-setup{padding:16px;display:none}
+  .notion-setup.active{display:block}
+  .notion-input{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-size:14px;font-family:inherit;-webkit-appearance:none;margin-bottom:10px}
+  .notion-input:focus{outline:none;border-color:var(--blue)}
+  .notion-input::placeholder{color:var(--text3)}
+  .notion-btn{width:100%;padding:13px;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.12s}
+  .notion-btn:active{transform:scale(0.97)}
+  .notion-btn-primary{background:var(--blue);color:#fff}
+  .notion-btn-danger{background:rgba(255,69,58,0.12);color:var(--red);margin-top:8px}
+  .notion-btn:disabled{opacity:0.5;pointer-events:none}
+  .notion-help{font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.5}
+  .notion-help a{color:var(--blue);text-decoration:none}
+  .notion-status{font-size:13px;color:var(--green);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+  .notion-db-pick{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-size:14px;font-family:inherit;-webkit-appearance:none;margin-bottom:10px}
+  .notion-db-pick:focus{outline:none;border-color:var(--blue)}
+  .notion-or{text-align:center;color:var(--text3);font-size:12px;padding:6px 0}
+  .settings-connect-btn{padding:10px 20px;border-radius:var(--radius);background:var(--blue);color:#fff;border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:8px;transition:all 0.12s}
+  .settings-connect-btn:active{background:#0070e0;transform:scale(0.98)}
+
+  /* ── Tab Bar ── */
+  .tabbar{position:fixed;bottom:0;left:0;right:0;display:flex;background:rgba(0,0,0,0.88);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-top:0.5px solid rgba(255,255,255,0.12);padding:6px 0 calc(6px + var(--safe-bottom));z-index:100}
+  .tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px;cursor:pointer;color:var(--text3);font-size:10px;font-weight:500;transition:color 0.2s;-webkit-tap-highlight-color:transparent}
+  .tab.active{color:var(--blue)}
+  .tab svg{width:24px;height:24px;fill:currentColor}
+
+  /* ── Toast ── */
+  .toast{position:fixed;top:calc(env(safe-area-inset-top,12px) + 56px);left:16px;right:16px;background:var(--card2);border-radius:var(--radius);padding:14px 20px;font-size:14px;font-weight:600;z-index:200;opacity:0;transform:translateY(-8px);transition:all 0.3s;pointer-events:none;text-align:center}
+  .toast.show{opacity:1;transform:translateY(0)}
+  .toast-ok{color:var(--green)}
+  .toast-err{color:var(--red)}
+
+  /* Desktop */
+  @media(min-width:768px){
+    .screen{max-width:480px;margin:0 auto}
+    .tabbar{max-width:480px;left:50%;transform:translateX(-50%);border-radius:var(--radius) var(--radius) 0 0}
+  }
+</style>
+</head>
+<body>
+
+<!-- Nav Bar -->
+<div class="navbar">
+  <div class="navbar-inner">
+    <div class="nav-title"><span>Ticket</span>Snap</div>
+    <div class="nav-pill" id="usagePill">— / —</div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- ════════════════════ SCAN SCREEN ════════════════════ -->
+<div class="screen active" id="screenScan">
+
+  <div class="section-label">Invoice Scanner</div>
+
+  <!-- Preview zone (only shows when file selected) -->
+  <div class="upload-zone" id="uploadZone">
+    <input type="file" id="fileInput" accept="image/*" capture="environment">
+  </div>
+
+  <div class="scan-prompt" id="scanPrompt">Take a photo or upload an invoice to get started</div>
+
+  <div class="capture-row">
+    <button class="cap-btn" onclick="document.getElementById('galleryInput').click()">
+      <div class="cap-icon gallery">🖼</div>
+      <span class="cap-label">Gallery</span>
+    </button>
+    <button class="cap-btn" onclick="document.getElementById('fileInput').click()">
+      <div class="cap-icon camera">📷</div>
+      <span class="cap-label">Camera</span>
+    </button>
+    <button class="cap-btn" onclick="document.getElementById('pdfInput').click()">
+      <div class="cap-icon pdf">📄</div>
+      <span class="cap-label">PDF</span>
+    </button>
+  </div>
+  <input type="file" id="galleryInput" accept="image/*" style="display:none" multiple>
+  <input type="file" id="pdfInput" accept=".pdf,application/pdf" style="display:none">
+
+  <!-- File pills -->
+  <div class="file-pills" id="filePills"></div>
+
+  <!-- Add more pages -->
+  <button class="add-page-btn" id="addPageBtn" onclick="document.getElementById('addMoreInput').click()">+ Add Another Page</button>
+  <input type="file" id="addMoreInput" accept="image/*,.pdf" style="display:none" multiple>
+
+  <!-- Scan / Clear buttons -->
+  <div style="display:flex;gap:8px;margin-top:16px" id="scanRow">
+    <button class="scan-btn disabled" id="scanBtn" disabled style="flex:1">Scan Invoice</button>
+    <button class="cancel-btn" id="clearBtn" style="display:none" onclick="resetScan()">✕</button>
+  </div>
+
+  <!-- Processing -->
+  <div class="processing" id="processing">
+    <div class="proc-ring"></div>
+    <div class="proc-steps">
+      <div class="proc-step active" id="pStep1">Reading invoice...</div>
+      <div class="proc-step" id="pStep2">Extracting data with AI...</div>
+      <div class="proc-step" id="pStep3">Validating line items...</div>
+    </div>
+    <button class="cancel-scan-btn" id="cancelScanBtn" onclick="cancelScan()">Cancel</button>
+  </div>
+
+</div>
+
+<!-- ════════════════════ RESULTS SCREEN ════════════════════ -->
+<div class="screen" id="screenResults">
+
+  <!-- Hero -->
+  <div class="result-hero">
+    <div class="hero-vendor" id="resVendor">—</div>
+    <div class="hero-meta"><span id="resInvNum"></span> · <span id="resDate"></span></div>
+    <div class="hero-total" id="resTotal">$0.00</div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stat-row">
+    <div class="stat-card">
+      <div class="stat-value" id="statItems">0</div>
+      <div class="stat-label">Items</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="statTax">$0</div>
+      <div class="stat-label">Tax</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="statDue">—</div>
+      <div class="stat-label">Due</div>
+    </div>
+  </div>
+
+  <!-- Math check -->
+  <div class="math-banner" id="mathBanner"></div>
+
+  <!-- Items -->
+  <div class="ios-card">
+    <div class="items-header">
+      <span>Line Items</span>
+      <span class="items-count" id="resItemCount">0</span>
+    </div>
+    <div id="resItems"></div>
+    <div class="totals-section" id="resTotals"></div>
+  </div>
+
+  <!-- Export -->
+  <div style="margin-top:16px">
+    <button class="exp-btn notion" id="notionPushBtn" onclick="pushToNotion()" style="width:100%">📝 Push to Notion</button>
+  </div>
+
+  <div style="display:flex;gap:8px;margin-top:10px">
+    <button class="scan-again-btn" style="flex:1;margin-top:0" onclick="rescanInvoice()">🔄 Rescan Same Invoice</button>
+    <button class="scan-again-btn" style="flex:1;margin-top:0" onclick="showScreen('screenScan');resetScan()">📷 New Invoice</button>
+  </div>
+</div>
+
+<!-- ════════════════════ HISTORY SCREEN ════════════════════ -->
+<div class="screen" id="screenHistory">
+  <div class="section-label">Recent Scans</div>
+  <div class="ios-card" id="historyList">
+    <div class="empty-state">
+      <div class="empty-icon">📋</div>
+      <div class="empty-title">No Scans Yet</div>
+      <div class="empty-sub">Your scan history will appear here</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════ RECIPE BUILDER SCREEN ════════════════════ -->
+<div class="screen" id="screenRecipe">
+  <div class="section-label">Recipe Builder</div>
+
+  <!-- Recipe Selector -->
+  <div class="ios-card" style="padding:16px">
+    <div style="display:flex;gap:8px;align-items:center">
+      <select id="recipeSelect" style="flex:1;padding:10px 12px;border-radius:10px;border:1px solid var(--separator);background:var(--card);font-size:15px;color:var(--text)">
+        <option value="">Select a recipe...</option>
+      </select>
+      <button onclick="promptNewRecipe()" style="padding:10px 14px;border-radius:10px;border:none;background:var(--blue);color:#fff;font-size:15px;font-weight:600;white-space:nowrap">+ New</button>
+    </div>
+  </div>
+
+  <!-- Recipe Info (shows after selecting) -->
+  <div id="recipeInfo" style="display:none">
+    <div class="ios-card" style="padding:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div style="font-size:20px;font-weight:700" id="recipeName"></div>
+        <div style="font-size:14px;color:var(--secondary)" id="recipeCategory"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;text-align:center">
+        <div>
+          <div style="font-size:12px;color:var(--secondary)">Menu Price</div>
+          <div style="font-size:18px;font-weight:700" id="recipeMenuPrice">—</div>
+        </div>
+        <div>
+          <div style="font-size:12px;color:var(--secondary)">Food Cost</div>
+          <div style="font-size:18px;font-weight:700" id="recipeFoodCost">—</div>
+        </div>
+        <div>
+          <div style="font-size:12px;color:var(--secondary)">Profit</div>
+          <div style="font-size:18px;font-weight:700;color:var(--green)" id="recipeProfit">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Current Recipe Items -->
+    <div class="section-label" style="display:flex;justify-content:space-between;align-items:center">
+      <span>Ingredients</span>
+      <span style="font-size:13px;color:var(--secondary)" id="recipeItemCount">0 items</span>
+    </div>
+    <div id="recipeItemsList" class="ios-card" style="padding:0;overflow:hidden"></div>
+
+    <!-- Add Ingredient -->
+    <div class="ios-card" style="padding:12px;margin-top:12px">
+      <div style="font-size:14px;font-weight:600;margin-bottom:8px">Add Ingredient</div>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <input type="text" id="ingredientSearch" placeholder="Search ingredients..." oninput="searchIngredients(this.value)" style="flex:1;padding:10px 12px;border-radius:10px;border:1px solid var(--separator);background:var(--bg);font-size:15px;color:var(--text)">
+      </div>
+      <div id="ingredientResults" style="max-height:200px;overflow-y:auto;display:none"></div>
+      <!-- Selected ingredient form -->
+      <div id="ingredientForm" style="display:none;padding:12px;background:var(--bg);border-radius:10px;margin-top:8px">
+        <div style="font-weight:600;margin-bottom:8px" id="selectedIngName"></div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="number" id="ingredientQty" placeholder="Qty" step="0.25" min="0" style="width:80px;padding:10px;border-radius:10px;border:1px solid var(--separator);font-size:15px;text-align:center">
+          <div style="padding:10px 14px;background:var(--separator);border-radius:10px;font-size:14px;font-weight:600" id="ingredientUnit">oz</div>
+          <div style="flex:1;font-size:13px;color:var(--secondary)" id="ingredientCostPreview"></div>
+          <button onclick="addIngredientToRecipe()" style="padding:10px 16px;border-radius:10px;border:none;background:var(--green);color:#fff;font-size:15px;font-weight:600">Add</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════ SETTINGS SCREEN ════════════════════ -->
+<div class="screen" id="screenSettings">
+  <div class="section-label">Account</div>
+  <div class="ios-card">
+    <div class="settings-row">
+      <div class="settings-icon" style="background:rgba(10,132,255,0.15);color:var(--blue)">📊</div>
+      <div class="settings-label">Plan</div>
+      <div class="settings-value" id="planInfo">Free</div>
+    </div>
+    <div class="settings-row">
+      <div class="settings-icon" style="background:rgba(48,209,88,0.15);color:var(--green)">🔢</div>
+      <div class="settings-label">Scans Used</div>
+      <div class="settings-value" id="settingsScans">—</div>
+    </div>
+  </div>
+
+  <div class="section-label">Integrations</div>
+  <div class="ios-card">
+    <div class="settings-row" style="cursor:pointer" onclick="toggleNotionSetup()">
+      <div class="settings-icon" style="background:rgba(255,255,255,0.06)">📝</div>
+      <div class="settings-label">Notion</div>
+      <span class="settings-badge badge-disconnected" id="notionBadge">Not Connected</span>
+      <span class="settings-chevron" id="notionChevron">›</span>
+    </div>
+    <!-- Notion Setup Panel -->
+    <div class="notion-setup" id="notionSetup">
+      <!-- State: Not connected -->
+      <div id="notionConnectForm">
+        <div class="notion-help">
+          1. Go to <a href="https://www.notion.so/my-integrations" target="_blank">notion.so/my-integrations</a><br>
+          2. Create a new integration<br>
+          3. Copy the Internal Integration Token<br>
+          4. Share a Notion page with your integration
+        </div>
+        <input type="text" class="notion-input" id="notionTokenInput" placeholder="Paste your Notion integration token...">
+        <button class="notion-btn notion-btn-primary" id="notionSaveBtn" onclick="saveNotionToken()">Connect to Notion</button>
+      </div>
+      <!-- State: Connected, pick database -->
+      <div id="notionConnectedPanel" style="display:none">
+        <div class="notion-status" id="notionStatusText">Connected</div>
+        <select class="notion-db-pick" id="notionDbSelect" onchange="selectNotionDb()">
+          <option value="">Select a database...</option>
+        </select>
+        <div class="notion-or">— or —</div>
+        <button class="notion-btn notion-btn-primary" onclick="createNotionDb()">Create TicketSnap Database</button>
+        <button class="notion-btn notion-btn-danger" onclick="disconnectNotion()">Disconnect Notion</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-label">Modules</div>
+  <div class="ios-card">
+    <div class="settings-row" style="cursor:pointer" onclick="toggleRecipeSetup()">
+      <div class="settings-icon" style="background:rgba(255,159,10,0.15);color:var(--orange)">🍽️</div>
+      <div class="settings-label">Recipe Costing</div>
+      <span class="settings-badge" id="recipeBadge" style="background:rgba(255,255,255,0.06);color:var(--text2)">Not Set Up</span>
+      <span class="settings-chevron" id="recipeChevron">›</span>
+    </div>
+    <div class="notion-setup" id="recipeSetup">
+      <div id="recipeNotReady" style="display:none">
+        <div class="notion-help">Connect Notion first, then come back here to set up Recipe Costing.</div>
+      </div>
+      <div id="recipeReadyToSetup" style="display:none">
+        <div class="notion-help">
+          Creates 3 databases in your Notion workspace:<br>
+          • <b>Ingredients</b> — auto-updated from invoice scans<br>
+          • <b>Recipes</b> — with plate cost & food cost % formulas<br>
+          • <b>Recipe Items</b> — links ingredients to recipes<br><br>
+          Includes sample data (Lobster Mac & Cheese + Chicken Parm) to test the math.
+        </div>
+        <button class="notion-btn notion-btn-primary" id="recipeSetupBtn" onclick="setupRecipeCosting()">Set Up Recipe Costing</button>
+      </div>
+      <div id="recipeAlreadySetup" style="display:none">
+        <div class="notion-status">Recipe Costing is active</div>
+        <div class="notion-help">Ingredient prices auto-update when you push invoices to Notion. Open Notion to build and manage recipes.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-label">About</div>
+  <div class="ios-card">
+    <div class="settings-row">
+      <div class="settings-icon" style="background:rgba(191,90,242,0.15);color:var(--purple)">⚡</div>
+      <div class="settings-label">Version</div>
+      <div class="settings-value">1.0.0</div>
+    </div>
+    <div class="settings-row">
+      <div class="settings-icon" style="background:rgba(255,159,10,0.15);color:var(--orange)">🤖</div>
+      <div class="settings-label">Powered by</div>
+      <div class="settings-value">Claude AI</div>
+    </div>
+  </div>
+</div>
+
+<!-- Tab Bar -->
+<div class="tabbar">
+  <div class="tab active" data-screen="screenScan" onclick="showScreen('screenScan')">
+    <svg viewBox="0 0 24 24"><path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4z"/><path d="M9 2 7.17 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-3.17L15 2H9z"/></svg>
+    Scan
+  </div>
+  <div class="tab" data-screen="screenResults" onclick="showScreen('screenResults')">
+    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/><polyline points="14 2 14 8 20 8" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+    Results
+  </div>
+  <div class="tab" data-screen="screenHistory" onclick="showScreen('screenHistory');loadHistory()">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><polyline points="12 6 12 12 16 14" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+    History
+  </div>
+  <div class="tab" data-screen="screenRecipe" onclick="showScreen('screenRecipe');loadRecipes()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3"/><path d="M18 22V15"/></svg>
+    Recipes
+  </div>
+  <div class="tab" data-screen="screenSettings" onclick="showScreen('screenSettings')">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+    Settings
+  </div>
+</div>
+
+<script>
+// ── API Base Path ──
+// When served behind nginx at /scanner, API calls need the /scanner prefix
+// When accessed directly on port 8081, no prefix needed
+const API_BASE = window.location.pathname === '/' ? '' : window.location.pathname.replace(/\/$/, '');
+
+// ── State ──
+let token = localStorage.getItem('ts_token') || null;
+let currentInvoice = null;
+
+// ── Init ──
+(async function init() {
+  if (!token) {
+    const resp = await fetch(API_BASE + '/api/auth/demo', {method:'POST'});
+    const data = await resp.json();
+    token = data.token;
+    localStorage.setItem('ts_token', token);
+  }
+  updateUsage();
+})();
+
+function headers() {
+  return {'Authorization': `Bearer ${token}`};
+}
+
+async function updateUsage() {
+  try {
+    const resp = await fetch(API_BASE + '/api/usage', {headers: headers()});
+    const data = await resp.json();
+    document.getElementById('usagePill').innerHTML = `<b>${data.scans_used}</b> / ${data.scans_limit}`;
+    document.getElementById('planInfo').textContent = `${data.tier.charAt(0).toUpperCase() + data.tier.slice(1)}`;
+    document.getElementById('settingsScans').textContent = `${data.scans_used} / ${data.scans_limit}`;
+    if (data.notion_connected) {
+      notionConnected = true;
+      document.getElementById('notionBadge').textContent = 'Connected';
+      document.getElementById('notionBadge').className = 'settings-badge badge-connected';
+    }
+  } catch(e) { console.error(e); }
+}
+
+// ── Screens ──
+const screenMap = ['screenScan','screenResults','screenHistory','screenRecipe','screenSettings'];
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.screen === id);
+  });
+}
+
+// ── File Handling ──
+const uploadZone = document.getElementById('uploadZone');
+const fileInput = document.getElementById('fileInput');
+const galleryInput = document.getElementById('galleryInput');
+const pdfInput = document.getElementById('pdfInput');
+const addMoreInput = document.getElementById('addMoreInput');
+const scanBtn = document.getElementById('scanBtn');
+let selectedFiles = [];
+
+fileInput.addEventListener('change', e => { if(e.target.files.length) handleFiles(e.target.files); });
+galleryInput.addEventListener('change', e => { if(e.target.files.length) handleFiles(e.target.files); });
+pdfInput.addEventListener('change', e => { if(e.target.files.length) handleFiles(e.target.files); });
+addMoreInput.addEventListener('change', e => { if(e.target.files.length) handleFiles(e.target.files, true); });
+
+function handleFiles(fileList, append) {
+  if (!append) selectedFiles = [];
+  for (const f of fileList) selectedFiles.push(f);
+  updateFileUI();
+  scanBtn.disabled = false;
+  scanBtn.className = 'scan-btn ready';
+  scanBtn.textContent = selectedFiles.length > 1
+    ? `Scan ${selectedFiles.length} Pages`
+    : 'Scan Invoice';
+  document.getElementById('clearBtn').style.display = 'block';
+  document.getElementById('scanPrompt').style.display = 'none';
+}
+
+function updateFileUI() {
+  const pills = document.getElementById('filePills');
+  const addBtn = document.getElementById('addPageBtn');
+
+  if (selectedFiles.length === 1 && selectedFiles[0].type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      uploadZone.innerHTML = `<img src="${e.target.result}" alt="Invoice">`;
+      uploadZone.classList.add('has-file');
+      uploadZone.onclick = () => fileInput.click();
+    };
+    reader.readAsDataURL(selectedFiles[0]);
+    pills.innerHTML = '';
+    addBtn.classList.add('show');
+  } else if (selectedFiles.length === 1 && isPDF(selectedFiles[0])) {
+    uploadZone.innerHTML = `<div class="upload-icon">📄</div><div class="upload-label">${selectedFiles[0].name}</div><div class="upload-hint">${(selectedFiles[0].size/1024/1024).toFixed(1)} MB — all pages scanned</div>`;
+    uploadZone.classList.add('has-file');
+    uploadZone.onclick = () => pdfInput.click();
+    pills.innerHTML = '';
+    addBtn.classList.remove('show');
+  } else {
+    uploadZone.innerHTML = `<div class="upload-icon">📑</div><div class="upload-label">${selectedFiles.length} pages selected</div><div class="upload-hint">All pages scanned as one invoice</div>`;
+    uploadZone.classList.add('has-file');
+    uploadZone.onclick = () => galleryInput.click();
+    pills.innerHTML = selectedFiles.map((f,i) => `
+      <div class="file-pill">
+        <span>${isPDF(f)?'📄':'🖼'} ${f.name.length>18 ? f.name.slice(0,15)+'...' : f.name}</span>
+        <button class="pill-remove" onclick="event.stopPropagation();removePage(${i})">✕</button>
+      </div>`).join('');
+    addBtn.classList.add('show');
+  }
+}
+
+function isPDF(f) {
+  return f.type === 'application/pdf' || (f.name && f.name.toLowerCase().endsWith('.pdf'));
+}
+
+function removePage(index) {
+  selectedFiles.splice(index, 1);
+  if (selectedFiles.length === 0) resetScan();
+  else {
+    updateFileUI();
+    scanBtn.textContent = selectedFiles.length > 1
+      ? `Scan ${selectedFiles.length} Pages`
+      : 'Scan Invoice';
+  }
+}
+
+function resetScan() {
+  selectedFiles = [];
+  scanBtn.disabled = true;
+  scanBtn.className = 'scan-btn disabled';
+  scanBtn.textContent = 'Scan Invoice';
+  document.getElementById('processing').classList.remove('show');
+  document.getElementById('filePills').innerHTML = '';
+  document.getElementById('addPageBtn').classList.remove('show');
+  document.getElementById('clearBtn').style.display = 'none';
+  document.getElementById('scanPrompt').style.display = 'block';
+  uploadZone.innerHTML = `<input type="file" id="fileInput" accept="image/*" capture="environment">`;
+  uploadZone.classList.remove('has-file');
+  // Re-bind file input listener
+  document.getElementById('fileInput').addEventListener('change', e => { if(e.target.files.length) handleFiles(e.target.files); });
+}
+
+// ── Scan ──
+let scanAbortController = null;
+
+scanBtn.addEventListener('click', async () => {
+  if (!selectedFiles.length) return;
+  scanAbortController = new AbortController();
+  scanBtn.disabled = true;
+  document.getElementById('scanRow').style.display = 'none';
+  const proc = document.getElementById('processing');
+  proc.classList.add('show');
+  setStep(1);
+
+  try {
+    const formData = new FormData();
+    selectedFiles.forEach(f => formData.append('file', f));
+    setStep(2);
+
+    const resp = await fetch(API_BASE + '/api/scan', {
+      method: 'POST',
+      headers: headers(),
+      body: formData,
+      signal: scanAbortController.signal
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json();
+      throw new Error(err.error || `Scan failed (${resp.status})`);
+    }
+
+    const data = await resp.json();
+    setStep(3);
+    currentInvoice = data.invoice;
+
+    setTimeout(() => {
+      renderResults(data.invoice);
+      showScreen('screenResults');
+      updateUsage();
+      proc.classList.remove('show');
+      document.getElementById('scanRow').style.display = 'flex';
+      scanBtn.disabled = false;
+    }, 400);
+
+  } catch(err) {
+    if (err.name === 'AbortError') {
+      showToast('Scan cancelled', false);
+    } else {
+      showToast(err.message, false);
+    }
+    proc.classList.remove('show');
+    document.getElementById('scanRow').style.display = 'flex';
+    scanBtn.disabled = false;
+    scanBtn.className = 'scan-btn ready';
+  }
+});
+
+function cancelScan() {
+  if (scanAbortController) scanAbortController.abort();
+}
+
+function rescanInvoice() {
+  // Go back to scan screen with files still loaded, re-trigger scan
+  showScreen('screenScan');
+  if (selectedFiles.length) {
+    scanBtn.click();
+  }
+}
+
+function setStep(n) {
+  ['pStep1','pStep2','pStep3'].forEach((id,i) => {
+    const el = document.getElementById(id);
+    el.className = 'proc-step' + (i+1 < n ? ' done' : (i+1 === n ? ' active' : ''));
+    if(i+1 < n) el.textContent = el.textContent.replace(/^[✓✔] /,'');
+    if(i+1 < n) el.textContent = '✓ ' + el.textContent;
+  });
+}
+
+// ── Render Results ──
+let editingIndex = -1;
+
+function renderResults(inv) {
+  document.getElementById('resVendor').textContent = inv.vendor_name || 'Unknown Vendor';
+  document.getElementById('resInvNum').textContent = `#${inv.invoice_number || '—'}`;
+  document.getElementById('resDate').textContent = inv.invoice_date || '—';
+  document.getElementById('resTotal').textContent = `$${(inv.total||0).toFixed(2)}`;
+
+  // Stats
+  document.getElementById('statItems').textContent = (inv.items||[]).length;
+  document.getElementById('statTax').textContent = `$${(inv.tax||0).toFixed(2)}`;
+  document.getElementById('statDue').textContent = inv.due_date || '—';
+
+  // Reset Notion push button for the new scan
+  const notionBtn = document.getElementById('notionPushBtn');
+  notionBtn.textContent = '📝 Push to Notion';
+  notionBtn.style.color = '';
+  notionBtn.disabled = false;
+  notionBtn.onclick = pushToNotion;
+
+  renderMathBanner(inv);
+  renderItems(inv);
+  renderTotals(inv);
+}
+
+function renderMathBanner(inv) {
+  const v = inv._validation || {};
+  const mb = document.getElementById('mathBanner');
+  // Recalculate gap from current items
+  const itemsSum = (inv.items||[]).reduce((s,i) => s + i.total_price, 0);
+  const tax = inv.tax || 0;
+  const delivery = inv.delivery_fee || 0;
+  const gap = Math.round((inv.total - (itemsSum + tax + delivery)) * 100) / 100;
+  const gapOk = Math.abs(gap) <= 1.00;
+
+  if (gapOk) {
+    mb.className = 'math-banner math-ok';
+    mb.innerHTML = `✓ Math verified — gap: $${Math.abs(gap).toFixed(2)}`;
+  } else {
+    mb.className = 'math-banner math-warn';
+    mb.innerHTML = `⚠ $${Math.abs(gap).toFixed(2)} gap — tap items to fix prices`;
+  }
+}
+
+function renderItems(inv) {
+  const itemsDiv = document.getElementById('resItems');
+  itemsDiv.innerHTML = '';
+  document.getElementById('resItemCount').textContent = (inv.items||[]).length;
+
+  (inv.items||[]).forEach((item, idx) => {
+    const expected = Math.round(item.quantity * item.unit_price * 100) / 100;
+    const ok = Math.abs(expected - item.total_price) <= 0.10;
+    const edited = item._edited ? '<span class="edited-badge">edited</span>' : '';
+
+    const row = document.createElement('div');
+    row.innerHTML = `
+      <div class="item-row editable" onclick="toggleEditItem(${idx})">
+        <div class="item-check-badge ${ok?'badge-ok':'badge-warn'}">${ok?'✓':'!'}</div>
+        <div class="item-info">
+          <div class="item-name">${item.item_name}${edited}</div>
+          ${item.pack_size ? `<div class="item-pack">${item.pack_size}</div>` : ''}
+        </div>
+        <div class="item-nums">
+          <div class="item-total">$${item.total_price.toFixed(2)}</div>
+          <div class="item-detail">${item.quantity} × $${item.unit_price.toFixed(2)}</div>
+        </div>
+      </div>
+      <div class="item-edit-row" id="editRow${idx}" style="display:none">
+        <div class="edit-fields">
+          <div class="edit-field">
+            <label>Qty</label>
+            <input type="number" step="any" id="editQty${idx}" value="${item.quantity}">
+          </div>
+          <div class="edit-field">
+            <label>Unit $</label>
+            <input type="number" step="0.01" id="editUnit${idx}" value="${item.unit_price.toFixed(2)}">
+          </div>
+          <div class="edit-field">
+            <label>Total $</label>
+            <input type="number" step="0.01" id="editTotal${idx}" value="${item.total_price.toFixed(2)}">
+          </div>
+        </div>
+        <div class="edit-actions">
+          <button class="edit-delete" onclick="event.stopPropagation();deleteItem(${idx})">Delete</button>
+          <button class="edit-cancel" onclick="event.stopPropagation();toggleEditItem(-1)">Cancel</button>
+          <button class="edit-save" onclick="event.stopPropagation();saveItemEdit(${idx})">Save</button>
+        </div>
+      </div>`;
+    itemsDiv.appendChild(row);
+  });
+}
+
+function toggleEditItem(idx) {
+  // Close previous
+  if (editingIndex >= 0) {
+    const prev = document.getElementById('editRow' + editingIndex);
+    if (prev) prev.style.display = 'none';
+  }
+  // Open new (or just close if same)
+  if (idx === editingIndex || idx < 0) {
+    editingIndex = -1;
+    return;
+  }
+  editingIndex = idx;
+  const row = document.getElementById('editRow' + idx);
+  if (row) {
+    row.style.display = 'block';
+    // Focus the total field since that's usually what needs fixing
+    setTimeout(() => document.getElementById('editTotal' + idx)?.focus(), 100);
+  }
+}
+
+function saveItemEdit(idx) {
+  const item = currentInvoice.items[idx];
+  const qty = parseFloat(document.getElementById('editQty' + idx).value);
+  const unit = parseFloat(document.getElementById('editUnit' + idx).value);
+  const total = parseFloat(document.getElementById('editTotal' + idx).value);
+
+  if (!isNaN(qty)) item.quantity = qty;
+  if (!isNaN(unit)) item.unit_price = unit;
+  if (!isNaN(total)) item.total_price = total;
+  item._edited = true;
+  item._math_ok = Math.abs(Math.round(item.quantity * item.unit_price * 100) / 100 - item.total_price) <= 0.02;
+
+  editingIndex = -1;
+  renderItems(currentInvoice);
+  renderTotals(currentInvoice);
+  renderMathBanner(currentInvoice);
+  // Update hero total with recalculated subtotal
+  const newSubtotal = currentInvoice.items.reduce((s,i) => s + i.total_price, 0);
+  const recalcTotal = newSubtotal + (currentInvoice.tax||0) + (currentInvoice.delivery_fee||0);
+  document.getElementById('resTotal').textContent = `$${recalcTotal.toFixed(2)}`;
+  document.getElementById('statItems').textContent = currentInvoice.items.length;
+  showToast('Item updated — totals recalculated', true);
+}
+
+function deleteItem(idx) {
+  const name = currentInvoice.items[idx].item_name;
+  currentInvoice.items.splice(idx, 1);
+  editingIndex = -1;
+  renderItems(currentInvoice);
+  renderTotals(currentInvoice);
+  renderMathBanner(currentInvoice);
+  const newSubtotal = currentInvoice.items.reduce((s,i) => s + i.total_price, 0);
+  const recalcTotal = newSubtotal + (currentInvoice.tax||0) + (currentInvoice.delivery_fee||0);
+  document.getElementById('resTotal').textContent = `$${recalcTotal.toFixed(2)}`;
+  document.getElementById('statItems').textContent = currentInvoice.items.length;
+  document.getElementById('resItemCount').textContent = currentInvoice.items.length;
+  showToast(`Removed: ${name}`, true);
+}
+
+function renderTotals(inv) {
+  const totals = document.getElementById('resTotals');
+  const itemsSum = (inv.items||[]).reduce((s,i) => s + i.total_price, 0);
+  totals.innerHTML = `
+    <div class="total-line"><span>Subtotal</span><span>$${itemsSum.toFixed(2)}</span></div>
+    ${inv.tax ? `<div class="total-line"><span>Tax</span><span>$${inv.tax.toFixed(2)}</span></div>` : ''}
+    ${inv.delivery_fee ? `<div class="total-line"><span>Delivery</span><span>$${inv.delivery_fee.toFixed(2)}</span></div>` : ''}
+    <div class="total-line grand"><span>Total</span><span>$${(itemsSum + (inv.tax||0) + (inv.delivery_fee||0)).toFixed(2)}</span></div>`;
+}
+
+// ── Notion ──
+let notionConnected = false;
+
+function toggleNotionSetup() {
+  const panel = document.getElementById('notionSetup');
+  const chevron = document.getElementById('notionChevron');
+  if (panel.classList.contains('active')) {
+    panel.classList.remove('active');
+    chevron.textContent = '›';
+  } else {
+    panel.classList.add('active');
+    chevron.textContent = '⌄';
+    checkNotionStatus();
+  }
+}
+
+async function checkNotionStatus() {
+  try {
+    const resp = await fetch(API_BASE + '/api/notion/status', {headers: headers()});
+    const data = await resp.json();
+    if (data.connected) {
+      notionConnected = true;
+      document.getElementById('notionConnectForm').style.display = 'none';
+      document.getElementById('notionConnectedPanel').style.display = 'block';
+      document.getElementById('notionBadge').textContent = 'Connected';
+      document.getElementById('notionBadge').className = 'settings-badge badge-connected';
+
+      let statusText = 'Connected';
+      if (data.database_name) statusText += ' — ' + data.database_name;
+      document.getElementById('notionStatusText').textContent = statusText;
+
+      // Load databases into picker
+      loadNotionDatabases(data.database_id);
+    } else {
+      notionConnected = false;
+      document.getElementById('notionConnectForm').style.display = 'block';
+      document.getElementById('notionConnectedPanel').style.display = 'none';
+      document.getElementById('notionBadge').textContent = 'Not Connected';
+      document.getElementById('notionBadge').className = 'settings-badge badge-disconnected';
+    }
+  } catch(e) { console.error(e); }
+}
+
+async function saveNotionToken() {
+  const tokenVal = document.getElementById('notionTokenInput').value.trim();
+  if (!tokenVal) { showToast('Paste your Notion token first', false); return; }
+  const btn = document.getElementById('notionSaveBtn');
+  btn.textContent = 'Connecting...';
+  btn.disabled = true;
+  try {
+    const resp = await fetch(API_BASE + '/api/notion/save-token', {
+      method: 'POST',
+      headers: {...headers(), 'Content-Type':'application/json'},
+      body: JSON.stringify({token: tokenVal})
+    });
+    const data = await resp.json();
+    if (data.ok) {
+      showToast('Notion connected!', true);
+      document.getElementById('notionTokenInput').value = '';
+      checkNotionStatus();
+    } else {
+      throw new Error(data.error || 'Connection failed');
+    }
+  } catch(err) {
+    showToast(err.message, false);
+  } finally {
+    btn.textContent = 'Connect to Notion';
+    btn.disabled = false;
+  }
+}
+
+async function loadNotionDatabases(selectedId) {
+  try {
+    const resp = await fetch(API_BASE + '/api/notion/databases', {headers: headers()});
+    const data = await resp.json();
+    const select = document.getElementById('notionDbSelect');
+    select.innerHTML = '<option value="">Select a database...</option>';
+    (data.databases || []).forEach(db => {
+      const opt = document.createElement('option');
+      opt.value = db.id;
+      opt.textContent = db.title;
+      if (db.id === selectedId) opt.selected = true;
+      select.appendChild(opt);
+    });
+  } catch(e) { console.error(e); }
+}
+
+async function selectNotionDb() {
+  const select = document.getElementById('notionDbSelect');
+  const dbId = select.value;
+  const dbName = select.options[select.selectedIndex]?.textContent || '';
+  if (!dbId) return;
+  try {
+    const resp = await fetch(API_BASE + '/api/notion/set-database', {
+      method: 'POST',
+      headers: {...headers(), 'Content-Type':'application/json'},
+      body: JSON.stringify({database_id: dbId, database_name: dbName})
+    });
+    const data = await resp.json();
+    if (data.ok) {
+      showToast('Database selected: ' + dbName, true);
+      document.getElementById('notionStatusText').textContent = 'Connected — ' + dbName;
+    }
+  } catch(e) { showToast('Failed to set database', false); }
+}
+
+async function createNotionDb() {
+  const btn = event.target;
+  btn.textContent = 'Creating...';
+  btn.disabled = true;
+  try {
+    const resp = await fetch(API_BASE + '/api/notion/create-database', {
+      method: 'POST',
+      headers: {...headers(), 'Content-Type':'application/json'},
+      body: JSON.stringify({})
+    });
+    const data = await resp.json();
+    if (data.ok) {
+      showToast('TicketSnap database created!', true);
+      checkNotionStatus();
+    } else { throw new Error(data.error || 'Failed to create database'); }
+  } catch(err) {
+    showToast(err.message, false);
+  } finally {
+    btn.textContent = 'Create TicketSnap Database';
+    btn.disabled = false;
+  }
+}
+
+async function disconnectNotion() {
+  if (!confirm('Disconnect Notion? You can reconnect anytime.')) return;
+  try {
+    await fetch(API_BASE + '/api/notion/disconnect', {
+      method: 'POST',
+      headers: headers()
+    });
+    showToast('Notion disconnected', true);
+    notionConnected = false;
+    checkNotionStatus();
+  } catch(e) { showToast('Error disconnecting', false); }
+}
+
+// ── Recipe Costing ──
+function toggleRecipeSetup() {
+  const panel = document.getElementById('recipeSetup');
+  const chevron = document.getElementById('recipeChevron');
+  if (panel.classList.contains('active')) {
+    panel.classList.remove('active');
+    chevron.textContent = '›';
+  } else {
+    panel.classList.add('active');
+    chevron.textContent = '⌄';
+    checkRecipeStatus();
+  }
+}
+
+async function checkRecipeStatus() {
+  try {
+    const resp = await fetch(API_BASE + '/api/notion/status', {headers: headers()});
+    const data = await resp.json();
+    const badge = document.getElementById('recipeBadge');
+
+    if (!data.connected) {
+      document.getElementById('recipeNotReady').style.display = 'block';
+      document.getElementById('recipeReadyToSetup').style.display = 'none';
+      document.getElementById('recipeAlreadySetup').style.display = 'none';
+      badge.textContent = 'Not Set Up';
+      badge.style.background = 'rgba(255,255,255,0.06)';
+      badge.style.color = 'var(--text2)';
+      return;
+    }
+
+    // Check if recipe system exists by checking for ingredients_db in status
+    // We'll use a dedicated check
+    const recipeResp = await fetch(API_BASE + '/api/notion/recipe-status', {headers: headers()});
+    const recipeData = await recipeResp.json();
+
+    if (recipeData.setup) {
+      document.getElementById('recipeNotReady').style.display = 'none';
+      document.getElementById('recipeReadyToSetup').style.display = 'none';
+      document.getElementById('recipeAlreadySetup').style.display = 'block';
+      badge.textContent = 'Active';
+      badge.style.background = 'rgba(48,209,88,0.12)';
+      badge.style.color = 'var(--green)';
+    } else {
+      document.getElementById('recipeNotReady').style.display = 'none';
+      document.getElementById('recipeReadyToSetup').style.display = 'block';
+      document.getElementById('recipeAlreadySetup').style.display = 'none';
+      badge.textContent = 'Not Set Up';
+    }
+  } catch(e) { console.error(e); }
+}
+
+async function setupRecipeCosting() {
+  const btn = document.getElementById('recipeSetupBtn');
+  btn.textContent = 'Setting up...';
+  btn.disabled = true;
+  try {
+    const resp = await fetch(API_BASE + '/api/notion/create-recipe-system', {
+      method: 'POST',
+      headers: {...headers(), 'Content-Type':'application/json'},
+      body: JSON.stringify({})
+    });
+    const data = await resp.json();
+    if (data.ok) {
+      showToast('Recipe Costing is ready! Check Notion.', true);
+      checkRecipeStatus();
+    } else {
+      throw new Error(data.error || 'Setup failed');
+    }
+  } catch(err) {
+    showToast(err.message, false);
+  } finally {
+    btn.textContent = 'Set Up Recipe Costing';
+    btn.disabled = false;
+  }
+}
+
+async function pushToNotion() {
+  if (!currentInvoice) return;
+  const btn = document.getElementById('notionPushBtn');
+
+  // Check if Notion is connected first
+  try {
+    const statusResp = await fetch(API_BASE + '/api/notion/status', {headers: headers()});
+    const statusData = await statusResp.json();
+    if (!statusData.connected || !statusData.database_id) {
+      showToast('Set up Notion in Settings first', false);
+      showScreen('screenSettings');
+      setTimeout(() => {
+        const panel = document.getElementById('notionSetup');
+        if (!panel.classList.contains('active')) toggleNotionSetup();
+      }, 300);
+      return;
+    }
+  } catch(e) {}
+
+  btn.textContent = '⏳ Pushing...';
+  btn.disabled = true;
+  try {
+    // Determine smart status based on edits and math
+    const hasEdits = (currentInvoice.items || []).some(i => i._edited);
+    const allMathOk = (currentInvoice.items || []).every(i => {
+      const expected = Math.round(i.quantity * i.unit_price * 100) / 100;
+      return Math.abs(expected - i.total_price) <= 0.10;
+    });
+    const pushStatus = (hasEdits && allMathOk) ? 'Reviewed' : 'Pending';
+
+    const resp = await fetch(API_BASE + '/api/notion/push', {
+      method: 'POST',
+      headers: {...headers(), 'Content-Type':'application/json'},
+      body: JSON.stringify({invoice: currentInvoice, status: pushStatus})
+    });
+    const data = await resp.json();
+    if (data.ok) {
+      btn.textContent = pushStatus === 'Reviewed' ? '✓ Reviewed → Notion' : '✓ Pending → Notion';
+      btn.style.color = 'var(--green)';
+      showToast('Invoice added to Notion!', true);
+      if (data.notion_url) {
+        setTimeout(() => {
+          btn.textContent = '🔗 Open in Notion';
+          btn.style.color = 'var(--blue)';
+          btn.disabled = false;
+          btn.onclick = () => window.open(data.notion_url, '_blank');
+        }, 1500);
+      }
+    } else { throw new Error(data.error || 'Push failed'); }
+  } catch(err) {
+    showToast(err.message, false);
+    btn.textContent = '📝 Push to Notion';
+    btn.disabled = false;
+  }
+}
+
+// ── Recipe Builder ──
+let allRecipes = [];
+let allIngredients = [];
+let selectedRecipeId = null;
+let selectedIngredient = null;
+
+async function loadRecipes() {
+  try {
+    // Load recipes list
+    const resp = await fetch(API_BASE + '/api/recipe/find?name=', {headers: headers()});
+    const data = await resp.json();
+    if (data.ok) {
+      allRecipes = data.recipes;
+      const sel = document.getElementById('recipeSelect');
+      sel.innerHTML = '<option value="">Select a recipe...</option>';
+      data.recipes.forEach(r => {
+        sel.innerHTML += `<option value="${r.id}">${r.name}</option>`;
+      });
+      // Re-select if we had one
+      if (selectedRecipeId) {
+        sel.value = selectedRecipeId;
+        loadRecipeDetails(selectedRecipeId);
+      }
+    }
+  } catch(e) { console.error(e); }
+
+  // Load ALL ingredients for search (canonical + raw)
+  try {
+    const resp = await fetch(API_BASE + '/api/recipe/all-ingredients', {headers: headers()});
+    const data = await resp.json();
+    if (data.ok) {
+      allIngredients = data.ingredients;  // [{name, type:'canonical'|'raw'}, ...]
+    }
+  } catch(e) {}
+}
+
+document.getElementById('recipeSelect').addEventListener('change', function() {
+  if (this.value) {
+    selectedRecipeId = this.value;
+    loadRecipeDetails(this.value);
+  } else {
+    selectedRecipeId = null;
+    document.getElementById('recipeInfo').style.display = 'none';
+  }
+});
+
+async function loadRecipeDetails(recipeId) {
+  document.getElementById('recipeInfo').style.display = 'block';
+  document.getElementById('recipeName').textContent = 'Loading...';
+  document.getElementById('recipeItemsList').innerHTML = '<div style="padding:20px;text-align:center;color:var(--secondary)">Loading...</div>';
+
+  try {
+    // Get recipe page details
+    const resp = await fetch(API_BASE + '/api/recipe/details?id=' + recipeId, {headers: headers()});
+    const data = await resp.json();
+    if (data.ok) {
+      document.getElementById('recipeName').textContent = data.name;
+      document.getElementById('recipeCategory').textContent = data.category || '';
+      document.getElementById('recipeMenuPrice').textContent = data.menu_price ? `$${data.menu_price.toFixed(2)}` : '—';
+      document.getElementById('recipeFoodCost').textContent = data.food_cost_pct || '—';
+      document.getElementById('recipeProfit').textContent = data.profit_per_plate || '—';
+
+      // Render recipe items
+      const list = document.getElementById('recipeItemsList');
+      if (data.items && data.items.length > 0) {
+        list.innerHTML = data.items.map((item, i) => `
+          <div style="display:flex;align-items:center;padding:12px 16px;${i > 0 ? 'border-top:1px solid var(--separator)' : ''}">
+            <div style="flex:1">
+              <div style="font-weight:600;font-size:15px">${item.name}</div>
+              <div style="font-size:13px;color:var(--secondary)">${item.qty} ${item.unit}</div>
+            </div>
+            <div style="font-size:15px;font-weight:600">${item.line_cost ? '$' + item.line_cost.toFixed(2) : '—'}</div>
+          </div>
+        `).join('');
+        document.getElementById('recipeItemCount').textContent = data.items.length + ' items';
+      } else {
+        list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--secondary)">No ingredients yet — add some below</div>';
+        document.getElementById('recipeItemCount').textContent = '0 items';
+      }
+    }
+  } catch(e) {
+    console.error(e);
+    document.getElementById('recipeName').textContent = 'Error loading';
+  }
+}
+
+function searchIngredients(query) {
+  const container = document.getElementById('ingredientResults');
+  if (!query || query.length < 1) {
+    container.style.display = 'none';
+    return;
+  }
+  const q = query.toLowerCase();
+  const matches = allIngredients.filter(i => i.name.toLowerCase().includes(q));
+
+  if (matches.length === 0) {
+    container.innerHTML = '<div style="padding:10px;color:var(--secondary);font-size:14px">No matches</div>';
+  } else {
+    container.innerHTML = matches.slice(0, 15).map(i => `
+      <div onclick="selectIngredient('${i.name.replace(/'/g, "\\'")}', '${i.type}')" style="padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--separator);font-size:14px;display:flex;justify-content:space-between;align-items:center">
+        <span>${i.name}</span>
+        <span style="font-size:11px;padding:2px 8px;border-radius:6px;background:${i.type === 'canonical' ? 'rgba(52,199,89,0.15);color:var(--green)' : 'rgba(142,142,147,0.15);color:var(--secondary)'}">${i.type === 'canonical' ? 'canonical' : 'raw'}</span>
+      </div>
+    `).join('');
+  }
+  container.style.display = 'block';
+}
+
+async function selectIngredient(name, type) {
+  selectedIngredient = {name, type};
+  document.getElementById('ingredientResults').style.display = 'none';
+  document.getElementById('ingredientSearch').value = name;
+  document.getElementById('selectedIngName').textContent = name;
+  document.getElementById('ingredientForm').style.display = 'block';
+  document.getElementById('ingredientQty').value = '';
+  document.getElementById('ingredientQty').focus();
+
+  // Fetch the ingredient's recipe unit
+  try {
+    const resp = await fetch(API_BASE + '/api/recipe/ingredient-info?name=' + encodeURIComponent(name), {headers: headers()});
+    const data = await resp.json();
+    if (data.ok) {
+      selectedIngredient.recipe_unit = data.recipe_unit || 'oz';
+      selectedIngredient.cost_per_unit = data.cost_per_unit || 0;
+      document.getElementById('ingredientUnit').textContent = data.recipe_unit || 'oz';
+      updateCostPreview();
+    }
+  } catch(e) {}
+}
+
+function updateCostPreview() {
+  const qty = parseFloat(document.getElementById('ingredientQty').value) || 0;
+  const cpu = selectedIngredient?.cost_per_unit || 0;
+  const preview = document.getElementById('ingredientCostPreview');
+  if (qty > 0 && cpu > 0) {
+    preview.textContent = `~$${(qty * cpu).toFixed(2)}`;
+  } else {
+    preview.textContent = '';
+  }
+}
+
+document.getElementById('ingredientQty')?.addEventListener('input', updateCostPreview);
+
+async function addIngredientToRecipe() {
+  if (!selectedRecipeId || !selectedIngredient) return;
+  const qty = parseFloat(document.getElementById('ingredientQty').value);
+  if (!qty || qty <= 0) {
+    showToast('Enter a quantity', false);
+    return;
+  }
+
+  const unit = selectedIngredient.recipe_unit || document.getElementById('ingredientUnit').textContent;
+
+  try {
+    const resp = await fetch(API_BASE + '/api/recipe/add-items', {
+      method: 'POST',
+      headers: {...headers(), 'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        recipe_id: selectedRecipeId,
+        items: [{name: selectedIngredient.name, qty: qty, unit: unit}]
+      })
+    });
+    const data = await resp.json();
+    if (data.ok && data.created > 0) {
+      showToast(`Added ${selectedIngredient.name}`, true);
+      // Reset form
+      document.getElementById('ingredientSearch').value = '';
+      document.getElementById('ingredientForm').style.display = 'none';
+      selectedIngredient = null;
+      // Reload recipe details to show updated items/costs
+      loadRecipeDetails(selectedRecipeId);
+    } else {
+      showToast(data.errors?.[0] || 'Failed to add', false);
+    }
+  } catch(e) {
+    showToast('Error: ' + e.message, false);
+  }
+}
+
+async function promptNewRecipe() {
+  const name = prompt('Recipe name:');
+  if (!name) return;
+  const price = prompt('Menu price ($):');
+  try {
+    const resp = await fetch(API_BASE + '/api/recipe/create', {
+      method: 'POST',
+      headers: {...headers(), 'Content-Type': 'application/json'},
+      body: JSON.stringify({name: name, menu_price: parseFloat(price) || 0, servings: 1})
+    });
+    const data = await resp.json();
+    if (data.ok) {
+      showToast('Recipe created!', true);
+      selectedRecipeId = data.recipe_id;
+      loadRecipes();
+    } else {
+      showToast(data.error || 'Failed', false);
+    }
+  } catch(e) { showToast(e.message, false); }
+}
+
+// ── Export ──
+async function exportCSV() {
+  if (!currentInvoice) return;
+  const resp = await fetch(API_BASE + '/api/export/csv', {
+    method:'POST',
+    headers:{...headers(),'Content-Type':'application/json'},
+    body: JSON.stringify({invoice: currentInvoice})
+  });
+  const blob = await resp.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `invoice-${currentInvoice.invoice_number||'scan'}.csv`; a.click();
+  showToast('CSV downloaded', true);
+}
+
+function copyJSON() {
+  if (!currentInvoice) return;
+  const clean = JSON.parse(JSON.stringify(currentInvoice));
+  delete clean._validation;
+  clean.items.forEach(i => { delete i._math_ok; });
+  navigator.clipboard.writeText(JSON.stringify(clean, null, 2));
+  showToast('JSON copied!', true);
+}
+
+// ── History ──
+async function loadHistory() {
+  try {
+    const resp = await fetch(API_BASE + '/api/usage', {headers: headers()});
+    const data = await resp.json();
+    const list = document.getElementById('historyList');
+    const scans = (data.recent_scans || []).reverse();
+    if (!scans.length) {
+      list.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">No Scans Yet</div><div class="empty-sub">Your scan history will appear here</div></div>';
+      return;
+    }
+    list.innerHTML = scans.map(s => `
+      <div class="hist-card">
+        <div class="hist-icon">📄</div>
+        <div class="hist-info">
+          <div class="hist-vendor">${s.vendor}</div>
+          <div class="hist-date">${new Date(s.timestamp).toLocaleDateString()}</div>
+        </div>
+        <div>
+          <div class="hist-amount">$${(s.total||0).toFixed(2)}</div>
+          <div class="hist-items">${s.items_count} items</div>
+        </div>
+      </div>`).join('');
+  } catch(e) { console.error(e); }
+}
+
+// ── Toast ──
+function showToast(msg, ok) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast show ${ok ? 'toast-ok' : 'toast-err'}`;
+  setTimeout(() => t.className = 'toast', 2500);
+}
+
+// Notion auth redirect check (legacy OAuth flow)
+if (window.location.search.includes('notion=connected')) {
+  showToast('Notion connected!', true);
+  history.replaceState({}, '', window.location.pathname);
+}
+</script>
+
+</body>
+</html>

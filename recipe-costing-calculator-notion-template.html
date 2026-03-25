@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recipe Costing Calculator — Notion Template Preview</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #f7f6f3;
+    color: #37352f;
+    line-height: 1.6;
+  }
+
+  /* Notion-style page wrapper */
+  .notion-page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 60px 80px;
+    background: #fff;
+    min-height: 100vh;
+  }
+
+  /* Page icon + title */
+  .page-header {
+    margin-bottom: 32px;
+  }
+  .page-icon {
+    font-size: 60px;
+    margin-bottom: 8px;
+  }
+  .page-title {
+    font-size: 40px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #37352f;
+    border: none;
+    outline: none;
+  }
+  .page-subtitle {
+    font-size: 16px;
+    color: #9b9a97;
+    margin-top: 4px;
+  }
+
+  /* Callout block */
+  .callout {
+    display: flex;
+    gap: 12px;
+    padding: 16px;
+    background: #f1f1ef;
+    border-radius: 4px;
+    margin: 24px 0;
+    font-size: 14px;
+  }
+  .callout-icon { font-size: 20px; flex-shrink: 0; }
+  .callout-text { color: #37352f; }
+  .callout-text strong { font-weight: 600; }
+
+  /* Divider */
+  .divider {
+    border: none;
+    border-top: 1px solid #e8e7e4;
+    margin: 28px 0;
+  }
+
+  /* Section headers */
+  h2 {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 32px 0 16px;
+    color: #37352f;
+  }
+  h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 24px 0 12px;
+    color: #37352f;
+  }
+
+  /* Properties block (like Notion database properties) */
+  .properties {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 0;
+    margin: 20px 0;
+    font-size: 14px;
+  }
+  .prop-label {
+    padding: 6px 8px;
+    color: #9b9a97;
+    font-size: 13px;
+    border-top: 1px solid #f1f1ef;
+  }
+  .prop-value {
+    padding: 6px 8px;
+    border-top: 1px solid #f1f1ef;
+  }
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .tag-green { background: #dbeddb; color: #1e6b2c; }
+  .tag-blue { background: #d3e5ef; color: #24548d; }
+  .tag-orange { background: #fadec9; color: #93532b; }
+  .tag-red { background: #ffe2dd; color: #93292b; }
+  .tag-gray { background: #e8e7e4; color: #64635e; }
+  .tag-purple { background: #e8deee; color: #6940a5; }
+
+  /* Notion-style inline database / table */
+  .db-wrapper {
+    margin: 16px 0 24px;
+    border: 1px solid #e8e7e4;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .db-title-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: #fbfbfa;
+    border-bottom: 1px solid #e8e7e4;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .db-controls {
+    display: flex;
+    gap: 12px;
+    font-size: 12px;
+    color: #9b9a97;
+    font-weight: 400;
+  }
+  .db-controls span { cursor: pointer; }
+  .db-controls span:hover { color: #37352f; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  thead th {
+    text-align: left;
+    padding: 6px 12px;
+    font-weight: 500;
+    font-size: 12px;
+    color: #9b9a97;
+    border-bottom: 1px solid #e8e7e4;
+    background: #fbfbfa;
+    white-space: nowrap;
+    user-select: none;
+  }
+  tbody td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #f1f1ef;
+    vertical-align: middle;
+  }
+  tbody tr:hover { background: #f7f6f3; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .bold { font-weight: 600; }
+  .muted { color: #9b9a97; }
+
+  /* Summary cards */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin: 20px 0;
+  }
+  .summary-card {
+    background: #fbfbfa;
+    border: 1px solid #e8e7e4;
+    border-radius: 4px;
+    padding: 16px;
+  }
+  .summary-card .label {
+    font-size: 12px;
+    color: #9b9a97;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+  }
+  .summary-card .value {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .summary-card .sub {
+    font-size: 12px;
+    color: #9b9a97;
+    margin-top: 2px;
+  }
+  .green { color: #1e6b2c; }
+  .red { color: #c4322b; }
+  .blue { color: #24548d; }
+  .orange { color: #cf8316; }
+
+  /* Toggle / collapsible */
+  details {
+    margin: 12px 0;
+  }
+  details summary {
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 14px;
+    padding: 4px 0;
+    list-style: none;
+  }
+  details summary::before {
+    content: "▶ ";
+    font-size: 10px;
+    margin-right: 6px;
+    display: inline-block;
+    transition: transform 0.15s;
+  }
+  details[open] summary::before {
+    content: "▼ ";
+  }
+  details .toggle-content {
+    padding: 8px 0 8px 20px;
+    font-size: 14px;
+    color: #55534e;
+  }
+
+  /* Formula block */
+  .formula-block {
+    background: #f7f6f3;
+    border-left: 3px solid #e8e7e4;
+    padding: 12px 16px;
+    margin: 12px 0;
+    font-family: 'SFMono-Regular', Menlo, Consolas, monospace;
+    font-size: 13px;
+    color: #55534e;
+    border-radius: 0 4px 4px 0;
+  }
+
+  /* Profit bar */
+  .profit-bar-container {
+    margin: 16px 0 8px;
+    height: 28px;
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .bar-cost {
+    background: #ffe2dd;
+    color: #93292b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .bar-profit {
+    background: #dbeddb;
+    color: #1e6b2c;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Badge */
+  .badge-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 12px 0;
+  }
+  .badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid #e8e7e4;
+    background: #fff;
+  }
+
+  /* Template info footer */
+  .template-footer {
+    margin-top: 48px;
+    padding: 24px;
+    background: #f1f1ef;
+    border-radius: 4px;
+    text-align: center;
+  }
+  .template-footer h3 { margin: 0 0 8px; text-align: center; }
+  .template-footer p { font-size: 14px; color: #6b6966; max-width: 600px; margin: 0 auto; }
+  .price-tag {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 8px 24px;
+    background: #2383e2;
+    color: #fff;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 16px;
+    text-decoration: none;
+  }
+
+  @media (max-width: 700px) {
+    .notion-page { padding: 20px 16px 60px; }
+    .page-title { font-size: 28px; }
+    .summary-grid { grid-template-columns: repeat(2, 1fr); }
+    .properties { grid-template-columns: 110px 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="notion-page">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="page-icon">🍽️</div>
+    <div class="page-title">Recipe Costing Calculator</div>
+    <div class="page-subtitle">Track ingredient costs, calculate food cost %, and protect your margins — for every dish on your menu.</div>
+  </div>
+
+  <!-- Callout -->
+  <div class="callout">
+    <div class="callout-icon">💡</div>
+    <div class="callout-text">
+      <strong>How to use:</strong> Duplicate this template into your workspace. Add your recipes to the database below, list each ingredient with its vendor price and quantity, and the formulas auto-calculate your plate cost, food cost %, and profit per serving.
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- EXAMPLE RECIPE PAGE -->
+  <!-- ═══════════════════════════════════════ -->
+
+  <h2>📋 Example Recipe: Lobster Mac & Cheese</h2>
+
+  <!-- Recipe Properties -->
+  <div class="properties">
+    <div class="prop-label">Category</div>
+    <div class="prop-value"><span class="tag tag-orange">Entrée</span></div>
+    <div class="prop-label">Location</div>
+    <div class="prop-value"><span class="tag tag-blue">Both Locations</span></div>
+    <div class="prop-label">Menu Price</div>
+    <div class="prop-value"><strong>$26.00</strong></div>
+    <div class="prop-label">Yield</div>
+    <div class="prop-value">1 serving</div>
+    <div class="prop-label">Prep Time</div>
+    <div class="prop-value">25 min</div>
+    <div class="prop-label">Status</div>
+    <div class="prop-value"><span class="tag tag-green">Active — On Menu</span></div>
+    <div class="prop-label">Last Costed</div>
+    <div class="prop-value">March 20, 2026</div>
+    <div class="prop-label">Food Cost %</div>
+    <div class="prop-value"><span class="tag tag-green">33.2%</span></div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="summary-grid">
+    <div class="summary-card">
+      <div class="label">Plate Cost</div>
+      <div class="value red">$8.63</div>
+      <div class="sub">9 ingredients</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">Menu Price</div>
+      <div class="value blue">$26.00</div>
+      <div class="sub">incl. tax</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">Gross Profit</div>
+      <div class="value green">$17.37</div>
+      <div class="sub">per plate</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">Food Cost %</div>
+      <div class="value orange">33.2%</div>
+      <div class="sub">target: &lt; 35%</div>
+    </div>
+  </div>
+
+  <!-- Margin visual bar -->
+  <div class="profit-bar-container">
+    <div class="bar-cost" style="width: 33.2%;">Cost 33.2%</div>
+    <div class="bar-profit" style="width: 66.8%;">Profit 66.8%</div>
+  </div>
+
+  <h3>🧾 Ingredient Breakdown</h3>
+
+  <div class="db-wrapper">
+    <div class="db-title-bar">
+      Ingredients
+      <div class="db-controls">
+        <span>⊞ Filter</span>
+        <span>↕ Sort</span>
+        <span>⋯</span>
+      </div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Ingredient</th>
+          <th>Vendor</th>
+          <th>Pack Size</th>
+          <th class="num">Pack Price</th>
+          <th class="num">Unit Cost</th>
+          <th class="num">Qty Used</th>
+          <th>Unit</th>
+          <th class="num">Line Cost</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="bold">Lobster Meat</td>
+          <td class="muted">Cape Cod Shellfish</td>
+          <td>2 lb</td>
+          <td class="num">$29.50</td>
+          <td class="num">$14.75/lb</td>
+          <td class="num">0.33</td>
+          <td>lb</td>
+          <td class="num bold">$4.87</td>
+        </tr>
+        <tr>
+          <td class="bold">Cavatappi Pasta</td>
+          <td class="muted">US Foods</td>
+          <td>10 lb</td>
+          <td class="num">$12.80</td>
+          <td class="num">$1.28/lb</td>
+          <td class="num">0.50</td>
+          <td>lb</td>
+          <td class="num bold">$0.64</td>
+        </tr>
+        <tr>
+          <td class="bold">Sharp Cheddar</td>
+          <td class="muted">Performance Food</td>
+          <td>5 lb</td>
+          <td class="num">$18.40</td>
+          <td class="num">$3.68/lb</td>
+          <td class="num">0.25</td>
+          <td>lb</td>
+          <td class="num bold">$0.92</td>
+        </tr>
+        <tr>
+          <td class="bold">Heavy Cream</td>
+          <td class="muted">Performance Food</td>
+          <td>1 qt</td>
+          <td class="num">$5.20</td>
+          <td class="num">$5.20/qt</td>
+          <td class="num">0.25</td>
+          <td>qt</td>
+          <td class="num bold">$1.30</td>
+        </tr>
+        <tr>
+          <td class="bold">Gruyère</td>
+          <td class="muted">Performance Food</td>
+          <td>1 lb</td>
+          <td class="num">$12.60</td>
+          <td class="num">$12.60/lb</td>
+          <td class="num">0.04</td>
+          <td>lb</td>
+          <td class="num bold">$0.50</td>
+        </tr>
+        <tr>
+          <td class="bold">Butter</td>
+          <td class="muted">US Foods</td>
+          <td>1 lb</td>
+          <td class="num">$4.80</td>
+          <td class="num">$4.80/lb</td>
+          <td class="num">0.06</td>
+          <td>lb</td>
+          <td class="num bold">$0.29</td>
+        </tr>
+        <tr>
+          <td class="bold">Panko Breadcrumbs</td>
+          <td class="muted">US Foods</td>
+          <td>3 lb</td>
+          <td class="num">$7.50</td>
+          <td class="num">$2.50/lb</td>
+          <td class="num">0.02</td>
+          <td>lb</td>
+          <td class="num bold">$0.05</td>
+        </tr>
+        <tr>
+          <td class="bold">Old Bay Seasoning</td>
+          <td class="muted">US Foods</td>
+          <td>24 oz</td>
+          <td class="num">$8.90</td>
+          <td class="num">$0.37/oz</td>
+          <td class="num">0.10</td>
+          <td>oz</td>
+          <td class="num bold">$0.04</td>
+        </tr>
+        <tr>
+          <td class="bold">Chives (garnish)</td>
+          <td class="muted">Local Farm</td>
+          <td>1 bunch</td>
+          <td class="num">$2.50</td>
+          <td class="num">$0.25/ea</td>
+          <td class="num">0.10</td>
+          <td>bunch</td>
+          <td class="num bold">$0.02</td>
+        </tr>
+        <tr style="background: #f7f6f3; font-weight: 600;">
+          <td colspan="7" style="text-align: right; padding-right: 12px;">Total Plate Cost</td>
+          <td class="num bold" style="color: #c4322b;">$8.63</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Formulas -->
+  <details>
+    <summary>📐 Formulas Used (auto-calculated)</summary>
+    <div class="toggle-content">
+      <div class="formula-block">
+        Unit Cost = Pack Price ÷ Pack Size<br>
+        Line Cost = Unit Cost × Qty Used<br>
+        Plate Cost = SUM(all Line Costs)<br>
+        Food Cost % = (Plate Cost ÷ Menu Price) × 100<br>
+        Gross Profit = Menu Price − Plate Cost
+      </div>
+    </div>
+  </details>
+
+  <hr class="divider">
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- FULL MENU DATABASE VIEW -->
+  <!-- ═══════════════════════════════════════ -->
+
+  <h2>📊 Full Menu Overview</h2>
+  <p style="font-size: 14px; color: #6b6966; margin-bottom: 16px;">
+    Every recipe in one table. Sort by food cost % to instantly spot which dishes are costing you the most.
+  </p>
+
+  <div class="db-wrapper">
+    <div class="db-title-bar">
+      All Recipes
+      <div class="db-controls">
+        <span>⊞ Filter</span>
+        <span>↕ Sort: Food Cost % ↑</span>
+        <span>👁 Views</span>
+        <span>⋯</span>
+      </div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Recipe</th>
+          <th>Category</th>
+          <th class="num">Menu Price</th>
+          <th class="num">Plate Cost</th>
+          <th class="num">Food Cost %</th>
+          <th class="num">Profit</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="bold">House Salad</td>
+          <td><span class="tag tag-green">Appetizer</span></td>
+          <td class="num">$14.00</td>
+          <td class="num">$2.45</td>
+          <td class="num green bold">17.5%</td>
+          <td class="num">$11.55</td>
+          <td><span class="tag tag-green">Active</span></td>
+        </tr>
+        <tr>
+          <td class="bold">Fish Tacos</td>
+          <td><span class="tag tag-orange">Entrée</span></td>
+          <td class="num">$18.00</td>
+          <td class="num">$4.15</td>
+          <td class="num green bold">23.1%</td>
+          <td class="num">$13.85</td>
+          <td><span class="tag tag-green">Active</span></td>
+        </tr>
+        <tr>
+          <td class="bold">Fried Calamari</td>
+          <td><span class="tag tag-green">Appetizer</span></td>
+          <td class="num">$16.00</td>
+          <td class="num">$4.22</td>
+          <td class="num green bold">26.4%</td>
+          <td class="num">$11.78</td>
+          <td><span class="tag tag-green">Active</span></td>
+        </tr>
+        <tr>
+          <td class="bold">Grilled Swordfish</td>
+          <td><span class="tag tag-orange">Entrée</span></td>
+          <td class="num">$32.00</td>
+          <td class="num">$9.92</td>
+          <td class="num orange bold">31.0%</td>
+          <td class="num">$22.08</td>
+          <td><span class="tag tag-green">Active</span></td>
+        </tr>
+        <tr style="background: #fffdf7;">
+          <td class="bold">Lobster Mac & Cheese</td>
+          <td><span class="tag tag-orange">Entrée</span></td>
+          <td class="num">$26.00</td>
+          <td class="num">$8.63</td>
+          <td class="num orange bold">33.2%</td>
+          <td class="num">$17.37</td>
+          <td><span class="tag tag-green">Active</span></td>
+        </tr>
+        <tr>
+          <td class="bold">Clam Chowder</td>
+          <td><span class="tag tag-green">Appetizer</span></td>
+          <td class="num">$12.00</td>
+          <td class="num">$4.20</td>
+          <td class="num orange bold">35.0%</td>
+          <td class="num">$7.80</td>
+          <td><span class="tag tag-orange">Review</span></td>
+        </tr>
+        <tr>
+          <td class="bold">Lobster Roll</td>
+          <td><span class="tag tag-orange">Entrée</span></td>
+          <td class="num">$34.00</td>
+          <td class="num">$13.26</td>
+          <td class="num red bold">39.0%</td>
+          <td class="num">$20.74</td>
+          <td><span class="tag tag-red">Over Target</span></td>
+        </tr>
+        <tr>
+          <td class="bold">Ribeye Steak</td>
+          <td><span class="tag tag-orange">Entrée</span></td>
+          <td class="num">$38.00</td>
+          <td class="num">$16.34</td>
+          <td class="num red bold">43.0%</td>
+          <td class="num">$21.66</td>
+          <td><span class="tag tag-red">Over Target</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Category summary -->
+  <h3>🎯 Category Targets</h3>
+  <div class="badge-row">
+    <div class="badge">🥗 Appetizers: <strong class="green">24%</strong> avg <span class="muted">(target &lt;30%)</span></div>
+    <div class="badge">🍽️ Entrées: <strong class="orange">34%</strong> avg <span class="muted">(target &lt;35%)</span></div>
+    <div class="badge">🍸 Bar: <strong class="green">18%</strong> avg <span class="muted">(target &lt;22%)</span></div>
+    <div class="badge">🍰 Desserts: <strong class="green">22%</strong> avg <span class="muted">(target &lt;28%)</span></div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- VENDOR PRICE TRACKER VIEW -->
+  <!-- ═══════════════════════════════════════ -->
+
+  <h2>📈 Vendor Price Tracker</h2>
+  <p style="font-size: 14px; color: #6b6966; margin-bottom: 16px;">
+    Log every vendor delivery. When a price changes, the template auto-flags it and recalculates affected recipes.
+  </p>
+
+  <div class="db-wrapper">
+    <div class="db-title-bar">
+      Recent Price Changes
+      <div class="db-controls">
+        <span>⊞ Filter: Last 30 days</span>
+        <span>↕ Sort</span>
+        <span>⋯</span>
+      </div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Vendor</th>
+          <th class="num">Old Price</th>
+          <th class="num">New Price</th>
+          <th class="num">Change</th>
+          <th>Recipes Affected</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="bold">Lobster Meat (2 lb)</td>
+          <td class="muted">Cape Cod Shellfish</td>
+          <td class="num">$26.00</td>
+          <td class="num">$29.50</td>
+          <td class="num red bold">+13.5%</td>
+          <td><span class="tag tag-purple">3 recipes</span></td>
+          <td class="muted">Mar 18</td>
+        </tr>
+        <tr>
+          <td class="bold">Swordfish Loin (10 lb)</td>
+          <td class="muted">Cape Cod Shellfish</td>
+          <td class="num">$72.00</td>
+          <td class="num">$78.40</td>
+          <td class="num red bold">+8.9%</td>
+          <td><span class="tag tag-purple">1 recipe</span></td>
+          <td class="muted">Mar 15</td>
+        </tr>
+        <tr>
+          <td class="bold">Heavy Cream (qt)</td>
+          <td class="muted">Performance Food</td>
+          <td class="num">$5.60</td>
+          <td class="num">$5.20</td>
+          <td class="num green bold">−7.1%</td>
+          <td><span class="tag tag-purple">8 recipes</span></td>
+          <td class="muted">Mar 12</td>
+        </tr>
+        <tr>
+          <td class="bold">Ground Beef 80/20 (10 lb)</td>
+          <td class="muted">US Foods</td>
+          <td class="num">$38.00</td>
+          <td class="num">$41.50</td>
+          <td class="num red bold">+9.2%</td>
+          <td><span class="tag tag-purple">4 recipes</span></td>
+          <td class="muted">Mar 10</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- WHAT'S INCLUDED -->
+  <!-- ═══════════════════════════════════════ -->
+
+  <h2>📦 What's Included in This Template</h2>
+
+  <details>
+    <summary>Recipe Database — add unlimited recipes with ingredients</summary>
+    <div class="toggle-content">
+      Each recipe is a Notion page with a linked ingredient database. Fill in your vendor pack sizes and prices, and the formulas handle the rest. Categories, tags, and status let you filter and organize by section.
+    </div>
+  </details>
+
+  <details>
+    <summary>Ingredient & Vendor Database — track pack sizes, prices, vendors</summary>
+    <div class="toggle-content">
+      Master list of every ingredient you buy. Link to one or more vendors, log pack sizes, and the unit cost is auto-calculated. When a price changes, every recipe using that ingredient updates automatically.
+    </div>
+  </details>
+
+  <details>
+    <summary>Menu Overview Dashboard — sort all dishes by food cost %</summary>
+    <div class="toggle-content">
+      One table with every menu item, its plate cost, food cost %, and profit. Sort by food cost % to instantly find your problem dishes. Color-coded status tags flag items that are over your target threshold.
+    </div>
+  </details>
+
+  <details>
+    <summary>Price Change Log — flag vendor price increases</summary>
+    <div class="toggle-content">
+      Every time you update a vendor price, the old price is logged with the date. See which products are trending up and how many recipes are affected.
+    </div>
+  </details>
+
+  <details>
+    <summary>Category Targets — set food cost % goals per menu section</summary>
+    <div class="toggle-content">
+      Set target food cost percentages for each category (appetizers, entrées, bar, desserts). The dashboard highlights any dish that exceeds its category target so you can adjust portions, pricing, or sourcing.
+    </div>
+  </details>
+
+  <details open>
+    <summary>Quick-Start Guide — get set up in 15 minutes</summary>
+    <div class="toggle-content">
+      Step-by-step walkthrough: (1) Add your top 10 dishes, (2) Enter ingredient costs from your latest invoices, (3) Set your menu prices, (4) Review your food cost dashboard. You'll have actionable data in under 15 minutes.
+    </div>
+  </details>
+
+  <hr class="divider">
+
+  <!-- Template CTA -->
+  <div class="template-footer">
+    <h3>🍽️ Recipe Costing Calculator for Restaurants</h3>
+    <p>Stop guessing your food costs. Know your margins on every plate — updated automatically when vendor prices change.</p>
+    <a href="#" class="price-tag">Get Template — $19</a>
+    <p style="margin-top: 10px; font-size: 12px; color: #9b9a97;">Works with Notion free plan · Instant duplicate · Lifetime updates</p>
+  </div>
+
+</div>
+
+</body>
+</html>

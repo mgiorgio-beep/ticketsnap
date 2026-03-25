@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Invoice Tracker & AP Dashboard — Notion Template Preview</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: #f7f6f3; color: #37352f; line-height: 1.6; }
+  .notion-page { max-width: 940px; margin: 0 auto; padding: 40px 60px 80px; background: #fff; min-height: 100vh; }
+  .page-icon { font-size: 60px; margin-bottom: 8px; }
+  .page-title { font-size: 40px; font-weight: 700; letter-spacing: -0.02em; }
+  .page-subtitle { font-size: 16px; color: #9b9a97; margin-top: 4px; }
+  .callout { display: flex; gap: 12px; padding: 16px; background: #f1f1ef; border-radius: 4px; margin: 24px 0; font-size: 14px; }
+  .callout-icon { font-size: 20px; flex-shrink: 0; }
+  .callout-text strong { font-weight: 600; }
+  .divider { border: none; border-top: 1px solid #e8e7e4; margin: 28px 0; }
+  h2 { font-size: 24px; font-weight: 600; margin: 32px 0 16px; }
+  h3 { font-size: 18px; font-weight: 600; margin: 24px 0 12px; }
+  p.desc { font-size: 14px; color: #6b6966; margin-bottom: 16px; }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 12px; font-weight: 500; }
+  .tag-green { background: #dbeddb; color: #1e6b2c; }
+  .tag-blue { background: #d3e5ef; color: #24548d; }
+  .tag-orange { background: #fadec9; color: #93532b; }
+  .tag-red { background: #ffe2dd; color: #93292b; }
+  .tag-gray { background: #e8e7e4; color: #64635e; }
+  .tag-purple { background: #e8deee; color: #6940a5; }
+  .tag-yellow { background: #fdecc8; color: #7b6524; }
+
+  /* Summary cards */
+  .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 20px 0; }
+  .summary-card { background: #fbfbfa; border: 1px solid #e8e7e4; border-radius: 4px; padding: 16px; }
+  .summary-card .label { font-size: 12px; color: #9b9a97; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+  .summary-card .value { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
+  .summary-card .sub { font-size: 12px; color: #9b9a97; margin-top: 2px; }
+  .green { color: #1e6b2c; }
+  .red { color: #c4322b; }
+  .blue { color: #24548d; }
+  .orange { color: #cf8316; }
+
+  /* Table */
+  .db-wrapper { margin: 16px 0 24px; border: 1px solid #e8e7e4; border-radius: 4px; overflow-x: auto; }
+  .db-title-bar { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #fbfbfa; border-bottom: 1px solid #e8e7e4; font-size: 13px; font-weight: 600; }
+  .db-controls { display: flex; gap: 12px; font-size: 12px; color: #9b9a97; font-weight: 400; }
+  .db-controls span { cursor: pointer; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  thead th { text-align: left; padding: 6px 12px; font-weight: 500; font-size: 12px; color: #9b9a97; border-bottom: 1px solid #e8e7e4; background: #fbfbfa; white-space: nowrap; }
+  tbody td { padding: 8px 12px; border-bottom: 1px solid #f1f1ef; vertical-align: middle; }
+  tbody tr:hover { background: #f7f6f3; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .bold { font-weight: 600; }
+  .muted { color: #9b9a97; font-size: 13px; }
+
+  /* Aging bars */
+  .aging-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 20px 0; }
+  .aging-card { border-radius: 4px; padding: 16px; border: 1px solid #e8e7e4; }
+  .aging-card .label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
+  .aging-card .amount { font-size: 24px; font-weight: 700; }
+  .aging-card .count { font-size: 12px; color: #9b9a97; margin-top: 2px; }
+  .aging-current { background: #f0faf0; }
+  .aging-30 { background: #fef9ef; }
+  .aging-60 { background: #fef3e6; }
+  .aging-90 { background: #fef0f0; }
+  .aging-bar { height: 6px; border-radius: 3px; margin-top: 8px; }
+
+  /* Properties */
+  .properties { display: grid; grid-template-columns: 140px 1fr 140px 1fr; gap: 0; margin: 20px 0; font-size: 14px; }
+  .prop-label { padding: 6px 8px; color: #9b9a97; font-size: 13px; border-top: 1px solid #f1f1ef; }
+  .prop-value { padding: 6px 8px; border-top: 1px solid #f1f1ef; }
+
+  /* Toggle */
+  details { margin: 12px 0; }
+  details summary { cursor: pointer; font-weight: 500; font-size: 14px; padding: 4px 0; list-style: none; }
+  details summary::before { content: "▶ "; font-size: 10px; margin-right: 6px; }
+  details[open] summary::before { content: "▼ "; }
+  details .toggle-content { padding: 8px 0 8px 20px; font-size: 14px; color: #55534e; }
+
+  .template-footer { margin-top: 48px; padding: 24px; background: #f1f1ef; border-radius: 4px; text-align: center; }
+  .template-footer h3 { margin: 0 0 8px; text-align: center; }
+  .template-footer p { font-size: 14px; color: #6b6966; max-width: 600px; margin: 0 auto; }
+  .price-tag { display: inline-block; margin-top: 12px; padding: 8px 24px; background: #2383e2; color: #fff; border-radius: 4px; font-weight: 600; font-size: 16px; text-decoration: none; }
+
+  @media (max-width: 700px) {
+    .notion-page { padding: 20px 16px 60px; }
+    .page-title { font-size: 28px; }
+    .summary-grid, .aging-grid { grid-template-columns: repeat(2, 1fr); }
+    .properties { grid-template-columns: 110px 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="notion-page">
+
+  <div class="page-header">
+    <div class="page-icon">🧾</div>
+    <div class="page-title">Invoice Tracker & AP Dashboard</div>
+    <div class="page-subtitle">Track every vendor invoice, know what's due, and never miss a payment again.</div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-icon">💡</div>
+    <div class="callout-text">
+      <strong>How it works:</strong> When an invoice arrives, log it in the database below. The dashboard auto-calculates what's outstanding, what's overdue, and your total AP by vendor. Mark invoices paid and track payment history.
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ═══════════════════════════════ -->
+  <!-- AP DASHBOARD -->
+  <!-- ═══════════════════════════════ -->
+
+  <h2>📊 Accounts Payable at a Glance</h2>
+
+  <div class="summary-grid">
+    <div class="summary-card">
+      <div class="label">Total Outstanding</div>
+      <div class="value red">$8,337</div>
+      <div class="sub">across 9 vendors</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">Due This Week</div>
+      <div class="value orange">$3,214</div>
+      <div class="sub">6 invoices</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">Paid This Month</div>
+      <div class="value green">$12,840</div>
+      <div class="sub">23 invoices</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">Overdue</div>
+      <div class="value red">$1,450</div>
+      <div class="sub">2 invoices</div>
+    </div>
+  </div>
+
+  <!-- Aging Breakdown -->
+  <h3>📅 Aging Breakdown</h3>
+
+  <div class="aging-grid">
+    <div class="aging-card aging-current">
+      <div class="label green">Current (0-15 days)</div>
+      <div class="amount green">$4,122</div>
+      <div class="count">8 invoices</div>
+      <div class="aging-bar" style="background: #1e6b2c; width: 100%;"></div>
+    </div>
+    <div class="aging-card aging-30">
+      <div class="label orange">16-30 days</div>
+      <div class="amount orange">$2,765</div>
+      <div class="count">5 invoices</div>
+      <div class="aging-bar" style="background: #cf8316; width: 67%;"></div>
+    </div>
+    <div class="aging-card aging-60">
+      <div class="label" style="color: #93532b;">31-60 days</div>
+      <div class="amount" style="color: #93532b;">$1,450</div>
+      <div class="count">2 invoices</div>
+      <div class="aging-bar" style="background: #93532b; width: 35%;"></div>
+    </div>
+    <div class="aging-card aging-90">
+      <div class="label red">60+ days</div>
+      <div class="amount red">$0</div>
+      <div class="count">0 invoices</div>
+      <div class="aging-bar" style="background: #e8e7e4; width: 100%;"></div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ═══════════════════════════════ -->
+  <!-- INVOICE DATABASE -->
+  <!-- ═══════════════════════════════ -->
+
+  <h2>🧾 Invoice Log</h2>
+  <p class="desc">Every invoice in one database. Filter by vendor, status, or location. Click any row to see line items.</p>
+
+  <div class="db-wrapper">
+    <div class="db-title-bar">
+      All Invoices
+      <div class="db-controls">
+        <span>⊞ Filter: Outstanding</span>
+        <span>↕ Sort: Due Date ↑</span>
+        <span>👁 Views</span>
+        <span>⋯</span>
+      </div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Invoice #</th>
+          <th>Vendor</th>
+          <th>Location</th>
+          <th class="num">Amount</th>
+          <th>Date</th>
+          <th>Due Date</th>
+          <th class="num">Balance</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="bold">INV-4821</td>
+          <td>US Foods</td>
+          <td><span class="tag tag-blue">Dennis</span></td>
+          <td class="num">$1,847.32</td>
+          <td class="muted">Mar 15</td>
+          <td class="muted">Mar 29</td>
+          <td class="num bold">$1,847.32</td>
+          <td><span class="tag tag-orange">Due Soon</span></td>
+        </tr>
+        <tr>
+          <td class="bold">INV-4819</td>
+          <td>Performance Food</td>
+          <td><span class="tag tag-purple">Chatham</span></td>
+          <td class="num">$923.16</td>
+          <td class="muted">Mar 14</td>
+          <td class="muted">Mar 28</td>
+          <td class="num bold">$923.16</td>
+          <td><span class="tag tag-orange">Due Soon</span></td>
+        </tr>
+        <tr>
+          <td class="bold">INV-4815</td>
+          <td>Cape Cod Shellfish</td>
+          <td><span class="tag tag-blue">Dennis</span></td>
+          <td class="num">$2,340.00</td>
+          <td class="muted">Mar 12</td>
+          <td class="muted">Mar 26</td>
+          <td class="num bold">$2,340.00</td>
+          <td><span class="tag tag-yellow">Due This Week</span></td>
+        </tr>
+        <tr>
+          <td class="bold">INV-4810</td>
+          <td>Southern Glazer's</td>
+          <td><span class="tag tag-blue">Dennis</span></td>
+          <td class="num">$1,450.00</td>
+          <td class="muted">Mar 5</td>
+          <td class="muted">Mar 19</td>
+          <td class="num bold red">$1,450.00</td>
+          <td><span class="tag tag-red">Overdue</span></td>
+        </tr>
+        <tr>
+          <td class="bold">INV-4802</td>
+          <td>Martignetti</td>
+          <td><span class="tag tag-purple">Chatham</span></td>
+          <td class="num">$876.50</td>
+          <td class="muted">Mar 8</td>
+          <td class="muted">Mar 22</td>
+          <td class="num bold">$876.50</td>
+          <td><span class="tag tag-yellow">Due This Week</span></td>
+        </tr>
+        <tr>
+          <td class="bold">INV-4798</td>
+          <td>US Foods</td>
+          <td><span class="tag tag-purple">Chatham</span></td>
+          <td class="num">$1,562.80</td>
+          <td class="muted">Mar 6</td>
+          <td class="muted">—</td>
+          <td class="num" style="color: #9b9a97;">$0.00</td>
+          <td><span class="tag tag-green">Paid</span></td>
+        </tr>
+        <tr>
+          <td class="bold">INV-4795</td>
+          <td>UniFirst</td>
+          <td><span class="tag tag-gray">Both</span></td>
+          <td class="num">$312.40</td>
+          <td class="muted">Mar 4</td>
+          <td class="muted">—</td>
+          <td class="num" style="color: #9b9a97;">$0.00</td>
+          <td><span class="tag tag-green">Paid</span></td>
+        </tr>
+        <tr>
+          <td class="bold">INV-4790</td>
+          <td>Local Farm</td>
+          <td><span class="tag tag-blue">Dennis</span></td>
+          <td class="num">$445.00</td>
+          <td class="muted">Mar 3</td>
+          <td class="muted">—</td>
+          <td class="num" style="color: #9b9a97;">$0.00</td>
+          <td><span class="tag tag-green">Paid</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ═══════════════════════════════ -->
+  <!-- VENDOR SUMMARY -->
+  <!-- ═══════════════════════════════ -->
+
+  <h2>🏪 Vendor Summary</h2>
+  <p class="desc">Total outstanding by vendor. Click any vendor to see all their invoices.</p>
+
+  <div class="db-wrapper">
+    <div class="db-title-bar">
+      Vendor Balances
+      <div class="db-controls">
+        <span>↕ Sort: Balance ↓</span>
+        <span>⋯</span>
+      </div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Vendor</th>
+          <th>Payment Terms</th>
+          <th>Payment Method</th>
+          <th class="num">MTD Spend</th>
+          <th class="num">Outstanding</th>
+          <th class="num">Invoices Open</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="bold">Cape Cod Shellfish</td>
+          <td><span class="tag tag-gray">Net 15</span></td>
+          <td>Check</td>
+          <td class="num">$4,680.00</td>
+          <td class="num bold red">$2,340.00</td>
+          <td class="num">1</td>
+        </tr>
+        <tr>
+          <td class="bold">US Foods</td>
+          <td><span class="tag tag-gray">Net 14</span></td>
+          <td>ACH</td>
+          <td class="num">$3,410.12</td>
+          <td class="num bold red">$1,847.32</td>
+          <td class="num">1</td>
+        </tr>
+        <tr>
+          <td class="bold">Southern Glazer's</td>
+          <td><span class="tag tag-gray">Net 14</span></td>
+          <td>Check</td>
+          <td class="num">$2,900.00</td>
+          <td class="num bold red">$1,450.00</td>
+          <td class="num">1</td>
+        </tr>
+        <tr>
+          <td class="bold">Performance Food</td>
+          <td><span class="tag tag-gray">Net 14</span></td>
+          <td>ACH</td>
+          <td class="num">$1,846.32</td>
+          <td class="num bold orange">$923.16</td>
+          <td class="num">1</td>
+        </tr>
+        <tr>
+          <td class="bold">Martignetti</td>
+          <td><span class="tag tag-gray">Net 14</span></td>
+          <td>Check</td>
+          <td class="num">$1,753.00</td>
+          <td class="num bold orange">$876.50</td>
+          <td class="num">1</td>
+        </tr>
+        <tr>
+          <td class="bold">Local Farm</td>
+          <td><span class="tag tag-gray">COD</span></td>
+          <td>Cash / Venmo</td>
+          <td class="num">$890.00</td>
+          <td class="num green">$0.00</td>
+          <td class="num">0</td>
+        </tr>
+        <tr>
+          <td class="bold">UniFirst</td>
+          <td><span class="tag tag-gray">Net 30</span></td>
+          <td>ACH</td>
+          <td class="num">$312.40</td>
+          <td class="num green">$0.00</td>
+          <td class="num">0</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ═══════════════════════════════ -->
+  <!-- EXAMPLE INVOICE PAGE -->
+  <!-- ═══════════════════════════════ -->
+
+  <h2>📄 Example Invoice Detail</h2>
+  <p class="desc">Click any invoice in the log to see full details and line items.</p>
+
+  <div class="properties">
+    <div class="prop-label">Invoice #</div>
+    <div class="prop-value"><strong>INV-4821</strong></div>
+    <div class="prop-label">Vendor</div>
+    <div class="prop-value">US Foods</div>
+    <div class="prop-label">Location</div>
+    <div class="prop-value"><span class="tag tag-blue">Dennis Port</span></div>
+    <div class="prop-label">Status</div>
+    <div class="prop-value"><span class="tag tag-orange">Due Soon</span></div>
+    <div class="prop-label">Invoice Date</div>
+    <div class="prop-value">March 15, 2026</div>
+    <div class="prop-label">Due Date</div>
+    <div class="prop-value">March 29, 2026</div>
+    <div class="prop-label">Total</div>
+    <div class="prop-value"><strong>$1,847.32</strong></div>
+    <div class="prop-label">Balance</div>
+    <div class="prop-value"><strong style="color: #c4322b;">$1,847.32</strong></div>
+  </div>
+
+  <h3>Line Items</h3>
+  <div class="db-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Item Code</th>
+          <th>Pack Size</th>
+          <th class="num">Qty</th>
+          <th class="num">Unit Price</th>
+          <th class="num">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="bold">Cavatappi Pasta</td>
+          <td class="muted">USF-29841</td>
+          <td>10 lb</td>
+          <td class="num">4</td>
+          <td class="num">$12.80</td>
+          <td class="num bold">$51.20</td>
+        </tr>
+        <tr>
+          <td class="bold">Ground Beef 80/20</td>
+          <td class="muted">USF-31205</td>
+          <td>10 lb</td>
+          <td class="num">6</td>
+          <td class="num">$41.50</td>
+          <td class="num bold">$249.00</td>
+        </tr>
+        <tr>
+          <td class="bold">Chicken Breast</td>
+          <td class="muted">USF-28412</td>
+          <td>40 lb</td>
+          <td class="num">2</td>
+          <td class="num">$89.60</td>
+          <td class="num bold">$179.20</td>
+        </tr>
+        <tr>
+          <td class="bold">Flour Tortillas (10in)</td>
+          <td class="muted">USF-44210</td>
+          <td>12 ct</td>
+          <td class="num">10</td>
+          <td class="num">$4.80</td>
+          <td class="num bold">$48.00</td>
+        </tr>
+        <tr>
+          <td class="bold">Panko Breadcrumbs</td>
+          <td class="muted">USF-55123</td>
+          <td>3 lb</td>
+          <td class="num">3</td>
+          <td class="num">$7.50</td>
+          <td class="num bold">$22.50</td>
+        </tr>
+        <tr>
+          <td colspan="3" class="muted" style="font-style: italic;">+ 14 more items...</td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr style="background: #f7f6f3;">
+          <td colspan="5" style="text-align: right; font-weight: 600; padding-right: 12px;">Subtotal</td>
+          <td class="num bold">$1,752.20</td>
+        </tr>
+        <tr style="background: #f7f6f3;">
+          <td colspan="5" style="text-align: right; padding-right: 12px; color: #9b9a97;">Tax</td>
+          <td class="num">$95.12</td>
+        </tr>
+        <tr style="background: #f1f1ef;">
+          <td colspan="5" style="text-align: right; font-weight: 700; padding-right: 12px;">Total</td>
+          <td class="num bold" style="font-size: 16px;">$1,847.32</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ═══════════════════════════════ -->
+  <!-- PAYMENT HISTORY -->
+  <!-- ═══════════════════════════════ -->
+
+  <h2>💳 Payment History</h2>
+  <p class="desc">Every payment recorded with method, check number (if applicable), and which invoices it covered.</p>
+
+  <div class="db-wrapper">
+    <div class="db-title-bar">
+      Recent Payments
+      <div class="db-controls">
+        <span>⊞ Filter</span>
+        <span>↕ Sort: Date ↓</span>
+        <span>⋯</span>
+      </div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Vendor</th>
+          <th>Method</th>
+          <th>Check #</th>
+          <th class="num">Amount</th>
+          <th>Invoices Covered</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Mar 20</td>
+          <td class="bold">US Foods</td>
+          <td><span class="tag tag-blue">ACH</span></td>
+          <td class="muted">—</td>
+          <td class="num bold">$1,562.80</td>
+          <td>INV-4798</td>
+        </tr>
+        <tr>
+          <td>Mar 18</td>
+          <td class="bold">UniFirst</td>
+          <td><span class="tag tag-blue">ACH</span></td>
+          <td class="muted">—</td>
+          <td class="num bold">$312.40</td>
+          <td>INV-4795</td>
+        </tr>
+        <tr>
+          <td>Mar 17</td>
+          <td class="bold">Local Farm</td>
+          <td><span class="tag tag-green">Cash</span></td>
+          <td class="muted">—</td>
+          <td class="num bold">$445.00</td>
+          <td>INV-4790</td>
+        </tr>
+        <tr>
+          <td>Mar 14</td>
+          <td class="bold">Southern Glazer's</td>
+          <td><span class="tag tag-purple">Check</span></td>
+          <td>2009</td>
+          <td class="num bold">$2,240.00</td>
+          <td>INV-4785, INV-4771</td>
+        </tr>
+        <tr>
+          <td>Mar 10</td>
+          <td class="bold">Martignetti</td>
+          <td><span class="tag tag-purple">Check</span></td>
+          <td>2008</td>
+          <td class="num bold">$1,320.00</td>
+          <td>INV-4778</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ═══════════════════════════════ -->
+  <!-- WHAT'S INCLUDED -->
+  <!-- ═══════════════════════════════ -->
+
+  <h2>📦 What's Included</h2>
+
+  <details>
+    <summary>Invoice Database — log every invoice with line items</summary>
+    <div class="toggle-content">
+      Each invoice is a Notion page. Log vendor, amount, date, due date, location, and individual line items. Status auto-updates based on due date and payment status.
+    </div>
+  </details>
+
+  <details>
+    <summary>AP Dashboard — total outstanding, aging, and due-this-week</summary>
+    <div class="toggle-content">
+      Summary cards and aging breakdown update automatically as you log invoices and payments. See exactly what's owed, what's due soon, and what's overdue.
+    </div>
+  </details>
+
+  <details>
+    <summary>Vendor Setup — terms, payment methods, contacts</summary>
+    <div class="toggle-content">
+      Store each vendor's payment terms (Net 14, Net 30, COD), preferred payment method, remittance address, and contact info. Linked to invoices so you always know the terms.
+    </div>
+  </details>
+
+  <details>
+    <summary>Payment Log — track every payment with method and check #</summary>
+    <div class="toggle-content">
+      Record payments by date, amount, method (check, ACH, cash, Venmo), and which invoice(s) it covers. Invoice balances auto-update.
+    </div>
+  </details>
+
+  <details>
+    <summary>Multi-Location Support — filter everything by site</summary>
+    <div class="toggle-content">
+      Each invoice tagged with location. Filter the entire dashboard by site to see AP for one location or all locations combined.
+    </div>
+  </details>
+
+  <hr class="divider">
+
+  <div class="template-footer">
+    <h3>🧾 Invoice Tracker & AP Dashboard for Restaurants</h3>
+    <p>Stop losing invoices in a pile on the desk. Know exactly what you owe, to whom, and when it's due.</p>
+    <a href="#" class="price-tag">Get Template — $19</a>
+    <p style="margin-top: 10px; font-size: 12px; color: #9b9a97;">Works with Notion free plan · Instant duplicate · Lifetime updates</p>
+  </div>
+
+</div>
+
+</body>
+</html>

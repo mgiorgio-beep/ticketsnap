@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vendor Price Watch — Notion Template Preview</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: #f7f6f3; color: #37352f; line-height: 1.6; }
+  .notion-page { max-width: 940px; margin: 0 auto; padding: 40px 60px 80px; background: #fff; min-height: 100vh; }
+  .page-icon { font-size: 60px; margin-bottom: 8px; }
+  .page-title { font-size: 40px; font-weight: 700; letter-spacing: -0.02em; }
+  .page-subtitle { font-size: 16px; color: #9b9a97; margin-top: 4px; }
+  .callout { display: flex; gap: 12px; padding: 16px; background: #f1f1ef; border-radius: 4px; margin: 24px 0; font-size: 14px; }
+  .callout-icon { font-size: 20px; flex-shrink: 0; }
+  .callout-text strong { font-weight: 600; }
+  .callout-warn { background: #fef3e6; }
+  .divider { border: none; border-top: 1px solid #e8e7e4; margin: 28px 0; }
+  h2 { font-size: 24px; font-weight: 600; margin: 32px 0 16px; }
+  h3 { font-size: 18px; font-weight: 600; margin: 24px 0 12px; }
+  p.desc { font-size: 14px; color: #6b6966; margin-bottom: 16px; }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 12px; font-weight: 500; }
+  .tag-green { background: #dbeddb; color: #1e6b2c; }
+  .tag-blue { background: #d3e5ef; color: #24548d; }
+  .tag-orange { background: #fadec9; color: #93532b; }
+  .tag-red { background: #ffe2dd; color: #93292b; }
+  .tag-gray { background: #e8e7e4; color: #64635e; }
+  .tag-purple { background: #e8deee; color: #6940a5; }
+
+  .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 20px 0; }
+  .summary-card { background: #fbfbfa; border: 1px solid #e8e7e4; border-radius: 4px; padding: 16px; }
+  .summary-card .label { font-size: 12px; color: #9b9a97; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+  .summary-card .value { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
+  .summary-card .sub { font-size: 12px; color: #9b9a97; margin-top: 2px; }
+  .green { color: #1e6b2c; }
+  .red { color: #c4322b; }
+  .blue { color: #24548d; }
+  .orange { color: #cf8316; }
+
+  .db-wrapper { margin: 16px 0 24px; border: 1px solid #e8e7e4; border-radius: 4px; overflow-x: auto; }
+  .db-title-bar { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #fbfbfa; border-bottom: 1px solid #e8e7e4; font-size: 13px; font-weight: 600; }
+  .db-controls { display: flex; gap: 12px; font-size: 12px; color: #9b9a97; font-weight: 400; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  thead th { text-align: left; padding: 6px 12px; font-weight: 500; font-size: 12px; color: #9b9a97; border-bottom: 1px solid #e8e7e4; background: #fbfbfa; white-space: nowrap; }
+  tbody td { padding: 8px 12px; border-bottom: 1px solid #f1f1ef; vertical-align: middle; }
+  tbody tr:hover { background: #f7f6f3; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .bold { font-weight: 600; }
+  .muted { color: #9b9a97; font-size: 13px; }
+
+  /* Sparkline bars */
+  .spark-bar { display: flex; align-items: center; gap: 6px; }
+  .spark-bar .bar { height: 18px; border-radius: 2px; display: flex; align-items: center; justify-content: flex-end; padding: 0 6px; font-size: 10px; font-weight: 600; color: #fff; min-width: 30px; }
+  .bar-red { background: #e5534b; }
+  .bar-green { background: #3fb950; }
+  .bar-orange { background: #d29922; }
+  .bar-gray { background: #bbb; }
+
+  /* Best price highlight */
+  .best-price { background: #f0faf0; }
+  .best-price td:first-child { border-left: 3px solid #1e6b2c; }
+
+  details { margin: 12px 0; }
+  details summary { cursor: pointer; font-weight: 500; font-size: 14px; padding: 4px 0; list-style: none; }
+  details summary::before { content: "▶ "; font-size: 10px; margin-right: 6px; }
+  details[open] summary::before { content: "▼ "; }
+  details .toggle-content { padding: 8px 0 8px 20px; font-size: 14px; color: #55534e; }
+
+  .template-footer { margin-top: 48px; padding: 24px; background: #f1f1ef; border-radius: 4px; text-align: center; }
+  .template-footer h3 { margin: 0 0 8px; text-align: center; }
+  .template-footer p { font-size: 14px; color: #6b6966; max-width: 600px; margin: 0 auto; }
+
+  /* Vendor compare section */
+  .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+  .compare-card { border: 1px solid #e8e7e4; border-radius: 4px; padding: 16px; }
+  .compare-card h4 { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+  .compare-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; border-bottom: 1px solid #f1f1ef; }
+
+  .price-tag { display: inline-block; margin-top: 12px; padding: 8px 24px; background: #2383e2; color: #fff; border-radius: 4px; font-weight: 600; font-size: 16px; text-decoration: none; }
+
+  @media (max-width: 700px) {
+    .notion-page { padding: 20px 16px 60px; }
+    .page-title { font-size: 28px; }
+    .summary-grid { grid-template-columns: repeat(2, 1fr); }
+    .compare-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="notion-page">
+
+  <div class="page-icon">📈</div>
+  <div class="page-title">Vendor Price Watch</div>
+  <div class="page-subtitle">Track every price change from every vendor. Know when costs are creeping up before they kill your margins.</div>
+
+  <div class="callout">
+    <div class="callout-icon">💡</div>
+    <div class="callout-text">
+      <strong>How it works:</strong> Each time you receive an invoice, update the current price for any items that changed. The template logs every change, flags spikes over 10%, and shows you which recipes are affected.
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ═══════════════════════════════ -->
+  <!-- PRICE ALERT DASHBOARD -->
+  <!-- ═══════════════════════════════ -->
+
+  <h2>🚨 Price Alerts — Last 30 Days</h2>
+
+  <div class="summary-grid">
+    <div class="summary-card">
+      <div class="label">Price Increases</div>
+      <div class="value red">12</div>
+      <div class="sub">across 4 vendors</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">Price Decreases</div>
+      <div class="value green">3</div>
+      <div class="sub">across 2 vendors</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">Biggest Spike</div>
+      <div class="value red">+13.5%</div>
+      <div class="sub">Lobster Meat</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">Est. Monthly Impact</div>
+      <div class="value orange">+$418</div>
+      <div class="sub">at current volumes</div>
+    </div>
+  </div>
+
+  <div class="callout callout-warn">
+    <div class="callout-icon">⚠️</div>
+    <div class="callout-text">
+      <strong>3 items spiked over 10% this month.</strong> Lobster Meat (+13.5%), Ground Beef (+9.2%), and Swordfish (+8.9%) are driving most of the increase. Consider adjusting menu prices or finding alternate vendors.
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ═══════════════════════════════ -->
+  <!-- RECENT PRICE CHANGES -->
+  <!-- ═══════════════════════════════ -->
+
+  <h2>📋 Recent Price Changes</h2>
+  <p class="desc">Every price change logged with date, percentage, and which recipes are impacted.</p>
+
+  <div class="db-wrapper">
+    <div class="db-title-bar">
+      Price Change Log
+      <div class="db-controls">
+        <span>⊞ Filter: Increases only</span>
+        <span>↕ Sort: % Change ↓</span>
+        <span>👁 Views</span>
+        <span>⋯</span>
+      </div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Vendor</th>
+          <th>Category</th>
+          <th class="num">Previous</th>
+          <th class="num">Current</th>
+          <th>Change</th>
+          <th>Recipes Affected</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="bold">Lobster Meat (2 lb)</td>
+          <td>Cape Cod Shellfish</td>
+          <td><span class="tag tag-blue">Seafood</span></td>
+          <td class="num">$26.00</td>
+          <td class="num bold">$29.50</td>
+          <td><div class="spark-bar"><div class="bar bar-red" style="width: 80px;">+13.5%</div></div></td>
+          <td><span class="tag tag-purple">3 recipes</span></td>
+          <td class="muted">Mar 18</td>
+        </tr>
+        <tr>
+          <td class="bold">Ground Beef 80/20 (10 lb)</td>
+          <td>US Foods</td>
+          <td><span class="tag tag-orange">Meat</span></td>
+          <td class="num">$38.00</td>
+          <td class="num bold">$41.50</td>
+          <td><div class="spark-bar"><div class="bar bar-red" style="width: 60px;">+9.2%</div></div></td>
+          <td><span class="tag tag-purple">4 recipes</span></td>
+          <td class="muted">Mar 15</td>
+        </tr>
+        <tr>
+          <td class="bold">Swordfish Loin (10 lb)</td>
+          <td>Cape Cod Shellfish</td>
+          <td><span class="tag tag-blue">Seafood</span></td>
+          <td class="num">$72.00</td>
+          <td class="num bold">$78.40</td>
+          <td><div class="spark-bar"><div class="bar bar-orange" style="width: 55px;">+8.9%</div></div></td>
+          <td><span class="tag tag-purple">1 recipe</span></td>
+          <td class="muted">Mar 15</td>
+        </tr>
+        <tr>
+          <td class="bold">Chicken Breast (40 lb)</td>
+          <td>US Foods</td>
+          <td><span class="tag tag-orange">Meat</span></td>
+          <td class="num">$85.20</td>
+          <td class="num bold">$89.60</td>
+          <td><div class="spark-bar"><div class="bar bar-orange" style="width: 40px;">+5.2%</div></div></td>
+          <td><span class="tag tag-purple">6 recipes</span></td>
+          <td class="muted">Mar 12</td>
+        </tr>
+        <tr>
+          <td class="bold">Mozzarella (5 lb)</td>
+          <td>Performance Food</td>
+          <td><span class="tag tag-green">Dairy</span></td>
+          <td class="num">$22.00</td>
+          <td class="num bold">$20.40</td>
+          <td><div class="spark-bar"><div class="bar bar-green" style="width: 50px;">−7.3%</div></div></td>
+          <td><span class="tag tag-purple">5 recipes</span></td>
+          <td class="muted">Mar 12</td>
+        </tr>
+        <tr>
+          <td class="bold">Heavy Cream (qt)</td>
+          <td>Performance Food</td>
+          <td><span class="tag tag-green">Dairy</span></td>
+          <td class="num">$5.60</td>
+          <td class="num bold">$5.20</td>
+          <td><div class="spark-bar"><div class="bar bar-green" style="width: 50px;">−7.1%</div></div></td>
+          <td><span class="tag tag-purple">8 recipes</span></td>
+          <td class="muted">Mar 12</td>
+        </tr>
+        <tr>
+          <td class="bold">Panko Breadcrumbs (3 lb)</td>
+          <td>US Foods</td>
+          <td><span class="tag tag-gray">Dry Goods</span></td>
+          <td class="num">$7.20</td>
+          <td class="num bold">$7.50</td>
+          <td><div class="spark-bar"><div class="bar bar-gray" style="width: 30px;">+4.2%</div></div></td>
+          <td><span class="tag tag-purple">2 recipes</span></td>
+          <td class="muted">Mar 10</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ═══════════════════════════════ -->
+  <!-- VENDOR PRICE COMPARISON -->
+  <!-- ═══════════════════════════════ -->
+
+  <h2>🏷️ Best Price Finder</h2>
+  <p class="desc">Compare the same product across vendors. Green highlight = best current price.</p>
+
+  <div class="db-wrapper">
+    <div class="db-title-bar">
+      Cross-Vendor Comparison
+      <div class="db-controls">
+        <span>🔍 Search: "chicken"</span>
+        <span>⋯</span>
+      </div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Pack Size</th>
+          <th>US Foods</th>
+          <th>Performance Food</th>
+          <th>Cape Cod Shellfish</th>
+          <th>Best Price</th>
+          <th>Savings</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="bold">Chicken Breast</td>
+          <td>40 lb</td>
+          <td class="num">$89.60</td>
+          <td class="num bold green">$84.20</td>
+          <td class="num muted">—</td>
+          <td><span class="tag tag-green">Performance</span></td>
+          <td class="num green bold">$5.40/case</td>
+        </tr>
+        <tr>
+          <td class="bold">Heavy Cream</td>
+          <td>1 qt</td>
+          <td class="num bold green">$4.90</td>
+          <td class="num">$5.20</td>
+          <td class="num muted">—</td>
+          <td><span class="tag tag-green">US Foods</span></td>
+          <td class="num green bold">$0.30/qt</td>
+        </tr>
+        <tr>
+          <td class="bold">Cod Fillet</td>
+          <td>10 lb</td>
+          <td class="num">$72.00</td>
+          <td class="num muted">—</td>
+          <td class="num bold green">$68.00</td>
+          <td><span class="tag tag-green">Cape Cod</span></td>
+          <td class="num green bold">$4.00/case</td>
+        </tr>
+        <tr>
+          <td class="bold">Mozzarella</td>
+          <td>5 lb</td>
+          <td class="num">$21.80</td>
+          <td class="num bold green">$20.40</td>
+          <td class="num muted">—</td>
+          <td><span class="tag tag-green">Performance</span></td>
+          <td class="num green bold">$1.40/case</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ═══════════════════════════════ -->
+  <!-- PRICE HISTORY -->
+  <!-- ═══════════════════════════════ -->
+
+  <h2>📊 Price History by Product</h2>
+  <p class="desc">Click any product to see its full price history. Example: Lobster Meat</p>
+
+  <div class="db-wrapper">
+    <div class="db-title-bar">
+      Lobster Meat — Price History
+      <div class="db-controls">
+        <span>↕ Sort: Date ↓</span>
+        <span>⋯</span>
+      </div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Vendor</th>
+          <th>Invoice #</th>
+          <th class="num">Pack Price</th>
+          <th class="num">Unit Price</th>
+          <th>Change</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Mar 18, 2026</td>
+          <td>Cape Cod Shellfish</td>
+          <td class="muted">INV-4815</td>
+          <td class="num bold">$29.50</td>
+          <td class="num">$14.75/lb</td>
+          <td><span class="tag tag-red">+13.5%</span></td>
+        </tr>
+        <tr>
+          <td>Mar 4, 2026</td>
+          <td>Cape Cod Shellfish</td>
+          <td class="muted">INV-4789</td>
+          <td class="num bold">$26.00</td>
+          <td class="num">$13.00/lb</td>
+          <td><span class="tag tag-gray">—</span></td>
+        </tr>
+        <tr>
+          <td>Feb 18, 2026</td>
+          <td>Cape Cod Shellfish</td>
+          <td class="muted">INV-4762</td>
+          <td class="num bold">$26.00</td>
+          <td class="num">$13.00/lb</td>
+          <td><span class="tag tag-gray">—</span></td>
+        </tr>
+        <tr>
+          <td>Feb 4, 2026</td>
+          <td>Cape Cod Shellfish</td>
+          <td class="muted">INV-4738</td>
+          <td class="num bold">$24.80</td>
+          <td class="num">$12.40/lb</td>
+          <td><span class="tag tag-gray">—</span></td>
+        </tr>
+        <tr>
+          <td>Jan 20, 2026</td>
+          <td>Cape Cod Shellfish</td>
+          <td class="muted">INV-4710</td>
+          <td class="num bold">$24.80</td>
+          <td class="num">$12.40/lb</td>
+          <td><span class="tag tag-orange">+6.4%</span></td>
+        </tr>
+        <tr>
+          <td>Jan 6, 2026</td>
+          <td>Cape Cod Shellfish</td>
+          <td class="muted">INV-4685</td>
+          <td class="num bold">$23.30</td>
+          <td class="num">$11.65/lb</td>
+          <td><span class="tag tag-gray">—</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="desc" style="margin-top: 8px; font-style: italic;">Lobster Meat is up 26.6% since January — from $23.30 to $29.50 per 2 lb pack.</p>
+
+  <hr class="divider">
+
+  <!-- ═══════════════════════════════ -->
+  <!-- WHAT'S INCLUDED -->
+  <!-- ═══════════════════════════════ -->
+
+  <h2>📦 What's Included</h2>
+
+  <details>
+    <summary>Product Price Database — every item you buy with current & historical prices</summary>
+    <div class="toggle-content">
+      Master list of products with current vendor, price, pack size, and unit cost. Linked to price history so you can see trends over time.
+    </div>
+  </details>
+
+  <details>
+    <summary>Price Change Log — auto-flags increases over your threshold</summary>
+    <div class="toggle-content">
+      Every price change recorded with date, old price, new price, % change, and which recipes it affects. Set your own alert threshold (default: 10%).
+    </div>
+  </details>
+
+  <details>
+    <summary>Best Price Finder — compare the same product across multiple vendors</summary>
+    <div class="toggle-content">
+      Side-by-side vendor comparison shows who has the best price on each product. Highlights potential savings if you switch vendors on specific items.
+    </div>
+  </details>
+
+  <details>
+    <summary>Price History per Product — see how costs have trended over months</summary>
+    <div class="toggle-content">
+      Drill into any product to see every price logged over time. Linked to invoice numbers so you have a paper trail.
+    </div>
+  </details>
+
+  <details>
+    <summary>Monthly Cost Impact Summary — estimate how price changes affect your bottom line</summary>
+    <div class="toggle-content">
+      Based on your average order quantities, see the estimated monthly dollar impact of recent price changes. Know whether it's $50 or $500 before it shows up on your P&L.
+    </div>
+  </details>
+
+  <hr class="divider">
+
+  <div class="template-footer">
+    <h3>📈 Vendor Price Watch for Restaurants</h3>
+    <p>Your vendors are raising prices. The question is — do you know about it before it shows up on your P&L?</p>
+    <a href="#" class="price-tag">Get Template — $15</a>
+    <p style="margin-top: 10px; font-size: 12px; color: #9b9a97;">Works with Notion free plan · Instant duplicate · Lifetime updates</p>
+  </div>
+
+</div>
+
+</body>
+</html>
