@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="TicketSnap">
+<meta name="apple-mobile-web-app-title" content="RecipeSnap">
 <meta name="theme-color" content="#000000">
-<title>TicketSnap</title>
+<title>RecipeSnap</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   :root{
@@ -461,7 +461,7 @@
           <option value="">Select a database...</option>
         </select>
         <div class="notion-or">— or —</div>
-        <button class="notion-btn notion-btn-primary" onclick="createNotionDb()">Create TicketSnap Database</button>
+        <button class="notion-btn notion-btn-primary" onclick="createNotionDb()">Create RecipeSnap Database</button>
         <button class="notion-btn notion-btn-danger" onclick="disconnectNotion()">Disconnect Notion</button>
       </div>
     </div>
@@ -1032,13 +1032,13 @@ async function createNotionDb() {
     });
     const data = await resp.json();
     if (data.ok) {
-      showToast('TicketSnap database created!', true);
+      showToast('RecipeSnap database created!', true);
       checkNotionStatus();
     } else { throw new Error(data.error || 'Failed to create database'); }
   } catch(err) {
     showToast(err.message, false);
   } finally {
-    btn.textContent = 'Create TicketSnap Database';
+    btn.textContent = 'Create RecipeSnap Database';
     btn.disabled = false;
   }
 }

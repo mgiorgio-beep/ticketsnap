@@ -1,5 +1,5 @@
 """
-TicketSnap — AI Invoice Scanner for Restaurants
+RecipeSnap — AI Invoice Scanner for Restaurants
 Flask backend with server-side Claude API + Notion integration
 v2.1 — multi-page + image conversion
 """
@@ -14,13 +14,13 @@ import requests
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG, format='%(asctime)s %(levelname)s: %(message)s')
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
-app.secret_key = os.environ.get('TICKETSNAP_SECRET', secrets.token_hex(32))
+app.secret_key = os.environ.get('RECIPESNAP_SECRET', secrets.token_hex(32))
 
 # ── Config ──────────────────────────────────────────────
 ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY')
 NOTION_CLIENT_ID = os.environ.get('NOTION_CLIENT_ID', '')
 NOTION_CLIENT_SECRET = os.environ.get('NOTION_CLIENT_SECRET', '')
-NOTION_REDIRECT_URI = os.environ.get('NOTION_REDIRECT_URI', 'https://ticketsnap.com/auth/notion/callback')
+NOTION_REDIRECT_URI = os.environ.get('NOTION_REDIRECT_URI', 'https://recipesnap.com/auth/notion/callback')
 MAX_SCANS_FREE = 999999  # unlimited for testing
 MAX_FILE_SIZE = 20 * 1024 * 1024  # 20MB
 
@@ -564,7 +564,7 @@ def notion_set_database():
 @app.route('/api/notion/create-database', methods=['POST'])
 @require_auth
 def notion_create_database():
-    """Create a TicketSnap database in the user's Notion workspace"""
+    """Create a RecipeSnap database in the user's Notion workspace"""
     user_data = load_user(request.user_id)
     token = user_data.get('notion_token')
     if not token:
@@ -593,7 +593,7 @@ def notion_create_database():
     # Create the database with invoice-friendly properties
     db_payload = {
         'parent': {'type': 'page_id', 'page_id': parent_page_id},
-        'title': [{'type': 'text', 'text': {'content': 'TicketSnap Invoices'}}],
+        'title': [{'type': 'text', 'text': {'content': 'RecipeSnap Invoices'}}],
         'properties': {
             'Vendor': {'title': {}},
             'Invoice #': {'rich_text': {}},
@@ -624,7 +624,7 @@ def notion_create_database():
 
     db = resp.json()
     db_id = db['id']
-    db_title = 'TicketSnap Invoices'
+    db_title = 'RecipeSnap Invoices'
 
     # Auto-save as the selected database
     user_data['notion_database_id'] = db_id
@@ -740,7 +740,7 @@ def notion_create_recipe_system():
                     'color': 'blue_background',
                     'rich_text': [
                         {'text': {'content': 'Recipe Costing Calculator\n'}, 'annotations': {'bold': True}},
-                        {'text': {'content': 'Know your plate cost on every dish. Ingredient prices auto-update when you scan invoices with TicketSnap — your food cost %, profit per plate, and recipe costs stay current without manual entry.'}}
+                        {'text': {'content': 'Know your plate cost on every dish. Ingredient prices auto-update when you scan invoices with RecipeSnap — your food cost %, profit per plate, and recipe costs stay current without manual entry.'}}
                     ]
                 }},
                 {'object': 'block', 'type': 'divider', 'divider': {}},
@@ -752,7 +752,7 @@ def notion_create_recipe_system():
                 {'object': 'block', 'type': 'numbered_list_item', 'numbered_list_item': {
                     'rich_text': [
                         {'text': {'content': 'Scan an invoice'}, 'annotations': {'bold': True}},
-                        {'text': {'content': ' — Take a photo with TicketSnap. AI reads every line item, price, and quantity.'}}
+                        {'text': {'content': ' — Take a photo with RecipeSnap. AI reads every line item, price, and quantity.'}}
                     ]
                 }},
                 {'object': 'block', 'type': 'numbered_list_item', 'numbered_list_item': {
@@ -1081,7 +1081,7 @@ def notion_create_recipe_system():
             {'object': 'block', 'type': 'callout', 'callout': {
                 'icon': {'type': 'emoji', 'emoji': '🔗'},
                 'color': 'gray_background',
-                'rich_text': [{'text': {'content': 'Powered by TicketSnap — AI invoice scanning for restaurants. Scan invoices, track costs, protect your margins.'}}]
+                'rich_text': [{'text': {'content': 'Powered by RecipeSnap — AI invoice scanning for restaurants. Scan invoices, track costs, protect your margins.'}}]
             }},
         ])
 
